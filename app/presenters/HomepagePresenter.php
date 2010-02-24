@@ -40,11 +40,15 @@ class HomepagePresenter extends BasePresenter
                 /*$template = $this->createTemplate();
                 $template->setFile(APP_DIR."/templates/pdf.phtml");*/
                 $pdfRes = new PDFResponse($vals["html"]);
-                $pdfRes->author = "Jan Kucha�";
+                $pdfRes->author = "Jan Kuchař";
                 //$pdfRes->onBeforeComplete[] = "test";
 
                 $mpdf = $pdfRes->mPDF;
-                $mpdf; // Here you have full mPDF object
+		// Embed some JavaScript
+                $mpdf->IncludeJS("app.alert('This is alert box created by JavaScript in this PDF file!',3);");
+		$mpdf->IncludeJS("app.alert('Now opening print dialog',1);");
+		$mpdf->OpenPrintDialog();
+		
                 $this->terminate($pdfRes);
         }
 

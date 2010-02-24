@@ -5,18 +5,18 @@
  */
 class PDFResponse extends Object implements IPresenterResponse
 {
-	/** @var mixed */
-	private $source;
-
         /**
          * path to mPDF.php
          * @var string
          */
-        public static $mPDFPath;
+	public static $mPDFPath = "%libsDir%/PdfResponse/mpdf/mpdf.php";
+
+	/** @var mixed */
+	private $source;
 
         /**
          * Callback - create mPDF object
-         * @var callback
+         * @var Callback
          */
         public $createMPDF = null;
 
@@ -146,7 +146,7 @@ class PDFResponse extends Object implements IPresenterResponse
 	 */
 	public function __construct($source)
 	{
-                $this->createMPDF = array($this,"createMPDF");
+                $this->createMPDF = callback($this,"createMPDF");
 		$this->source = $source;
 	}
 
@@ -179,8 +179,6 @@ class PDFResponse extends Object implements IPresenterResponse
                 $mpdf->SetAuthor($this->author);
                 $mpdf->SetTitle($this->title);
                 $mpdf->WriteHTML($html,2);
-		
-		$mpdf->OpenPrintDialog();
 
                 $this->onBeforeComplete($mpdf);
 
@@ -194,14 +192,14 @@ class PDFResponse extends Object implements IPresenterResponse
          */
         public function getMPDF(){
                 if(!$this->mPDF instanceof mPDF) {
-                        if(!is_callable($this->createMPDF)) {
-                            throw new InvalidStateException("Callback createMPDF is not callable!");
-                        }
-                        $mpdf = call_user_func($this->createMPDF, $this);
-                        if(!($mpdf instanceof mPDF)) {
-                            throw new InvalidStateException("Callback function createMPDF must return mPDF object!");
-                        }
-                        $this->mPDF = $mpdf;
+			if($this->createMPDF instanceof Callback and $this->createMPDF->isCallable()){
+				$mpdf = $this->createMPDF->invoke($this);
+				if(!($mpdf instanceof mPDF)) {
+				    throw new InvalidStateException("Callback function createMPDF must return mPDF object!");
+				}
+				$this->mPDF = $mpdf;
+			}else
+				throw new InvalidStateException("Callback createMPDF is not callable or is not instance of Nette\Callback!");
                 }
                 return $this->mPDF;
         }
@@ -214,9 +212,9 @@ class PDFResponse extends Object implements IPresenterResponse
          * @return mPDFExtended
          */
         public function createMPDF(){
-		if(!self::$mPDFPath) {
+		/*if(!self::$mPDFPath) {
 			self::$mPDFPath = dirname(__FILE__)."/mpdf/mpdf.php";
-		}
+		}*/
                 $mpdfPath = Environment::expand(self::$mPDFPath);
                 define('_MPDF_PATH',dirname($mpdfPath)."/");
                 require($mpdfPath);
