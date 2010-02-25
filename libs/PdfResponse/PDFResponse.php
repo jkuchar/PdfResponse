@@ -11,7 +11,10 @@ class PDFResponse extends Object implements IPresenterResponse
          */
 	public static $mPDFPath = "%libsDir%/PdfResponse/mpdf/mpdf.php";
 
-	/** @var mixed */
+	/**
+	 * Source data
+	 * @var mixed
+	 */
 	private $source;
 
         /**
@@ -25,83 +28,83 @@ class PDFResponse extends Object implements IPresenterResponse
 
         /**
          * Specifies page orientation.
-         * You can use constants:
-         *   ORIENTATION_PORTRAIT (default)
+         * You can use constants:<br>
+         *   ORIENTATION_PORTRAIT (default)<br>
          *   ORIENTATION_LANDSCAPE
          *
          * @var string
          */
-        public $orientation = self::ORIENTATION_PORTRAIT;
+        public $pageOrientaion = self::ORIENTATION_PORTRAIT;
 
         /**
-         * Specifies format of the document
-         * Allowed values:
-         *   Values (case-insensitive)
-         *   A0 - A10
-         *   B0 - B10
-         *   C0 - C10
-         *   4A0
-         *   2A0
-         *   RA0 - RA4
-         *   SRA0 - SRA4
-         *   Letter
-         *   Legal
-         *   Executive
-         *   Folio
-         *   Demy
-         *   Royal
-         *   A (Type A paperback 111x178mm)
-         *   B (Type B paperback 128x198mm)
+         * Specifies format of the document<br>
+         * Allowed values:<br>
+         *   Values (case-insensitive)<br>
+         *   A0 - A10<br>
+         *   B0 - B10<br>
+         *   C0 - C10<br>
+         *   4A0<br>
+         *   2A0<br>
+         *   RA0 - RA4<br>
+         *   SRA0 - SRA4<br>
+         *   Letter<br>
+         *   Legal<br>
+         *   Executive<br>
+         *   Folio<br>
+         *   Demy<br>
+         *   Royal<br>
+         *   A (Type A paperback 111x178mm)<br>
+         *   B (Type B paperback 128x198mm)<br>
          *
          * @var string
          */
-        public $format = "A4";
+        public $pageFormat = "A4";
 
         /**
-         * Margins in this order:
-         *   top
-         *   right
-         *   bottom
-         *   left
-         *   header
-         *   footer
+         * Margins in this order:<br>
+         *   top<br>
+         *   right<br>
+         *   bottom<br>
+         *   left<br>
+         *   header<br>
+         *   footer<br>
          *
          * @var string
          */
-        public $margins = "16,15,16,15,9,9";
+        public $pageMargins = "16,15,16,15,9,9";
 
         /**
          * Author of the document
          * @var string
          */
-        public $author = "Nette Framework - Pdf response";
+        public $documentAuthor = "Nette Framework - Pdf response";
 
         /**
          * Title of the document
          * @var string
          */
-        public $title = "Unnamed document";
+        public $documentTitle = "Unnamed document";
 
         /**
-         * This parameter specifies the magnification (zoom) of the display when the document is opened.
-         * Values (case-sensitive)
-         *   fullpage: Fit a whole page in the screen
-         *   fullwidth: Fit the width of the page in the screen
-         *   real: Display at real size
-         *   default: User's default setting in Adobe Reader
-         *   INTEGER : Display at a percentage zoom (e.g. 90 will display at 90% zoom)
+         * This parameter specifies the magnification (zoom) of the display when the document is opened.<br>
+         * Values (case-sensitive)<br>
+         *   fullpage: Fit a whole page in the screen<br>
+         *   fullwidth: Fit the width of the page in the screen<br>
+         *   real: Display at real size<br>
+         *   default: User's default setting in Adobe Reader<br>
+         *   INTEGER : Display at a percentage zoom (e.g. 90 will display at 90% zoom)<br>
          *
          * @var string|int
          */
-        public $displayMode = "default";
+        public $displayZoom = "default";
 
         /**
-         * Specify the page layout to be used when the document is opened.
-         * Values (case-sensitive)
-         *   single: Display one page at a time
-         *   continuous: Display the pages in one column
-         *   two: Display the pages in two columns
-         *   default: User's default setting in Adobe Reader
+         * Specify the page layout to be used when the document is opened.<br>
+         * Values (case-sensitive)<br>
+         *   single: Display one page at a time<br>
+         *   continuous: Display the pages in one column<br>
+         *   two: Display the pages in two columns<br>
+         *   default: User's default setting in Adobe Reader<br>
          * @var string
          */
         public $displayLayout = "continuous";
@@ -112,10 +115,20 @@ class PDFResponse extends Object implements IPresenterResponse
          */
         public $onBeforeComplete = array();
 
+	/**
+	 * Multi-language document
+	 * @var bool
+	 */
+	public $multiLanguage = false;
+
+	/**
+	 * mPDFExtended
+	 * @var mPDFExtended
+	 */
         private $mPDF = null;
 
         function getMargins(){
-            $margins = explode(",", $this->margins);
+            $margins = explode(",", $this->pageMargins);
             if(count($margins) !== 6) {
                 throw new InvalidStateException("You must specify all margins! For example: 16,15,16,15,9,9");
             }
@@ -132,8 +145,8 @@ class PDFResponse extends Object implements IPresenterResponse
             $marginsOut = array();
             foreach($margins AS $key => $val){
                 $val = (int)$val;
-                if($val <= 0) {
-                    throw new InvalidArgumentException("Margin must be positive number!");
+                if($val < 0) {
+                    throw new InvalidArgumentException("Margin must not be negative number!");
                 }
                 $marginsOut[$dictionary[$key]] = $val;
             }
@@ -176,13 +189,15 @@ class PDFResponse extends Object implements IPresenterResponse
 		}
                 
                 $mpdf = $this->getMPDF();
-                $mpdf->SetAuthor($this->author);
-                $mpdf->SetTitle($this->title);
+		$mpdf->biDirectional = $this->multiLanguage;
+                $mpdf->SetAuthor($this->documentAuthor);
+                $mpdf->SetTitle($this->documentTitle);
+		$mpdf->SetDisplayMode($this->displayZoom,$this->displayLayout);
                 $mpdf->WriteHTML($html,2);
 
                 $this->onBeforeComplete($mpdf);
 
-                $mpdf->Output(String::webalize($this->title),'I');
+                $mpdf->Output(String::webalize($this->documentTitle),'I');
 	}
 
 
@@ -224,7 +239,7 @@ class PDFResponse extends Object implements IPresenterResponse
                 //  [ float $margin_header , float $margin_footer [, string $orientation ]]]]]])
                 $mpdf = new mPDFExtended(
                     'utf-8',            // string $codepage
-                    $this->format,  // mixed $format
+                    $this->pageFormat,  // mixed $format
                     '',                 // float $default_font_size
                     '',                 // string $default_font
                     $margins["left"],   // float $margin_left
@@ -233,17 +248,9 @@ class PDFResponse extends Object implements IPresenterResponse
                     $margins["bottom"], // float $margin_bottom
                     $margins["header"], // float $margin_header
                     $margins["footer"], // float $margin_footer
-                    $this->orientation
+                    $this->pageOrientaion
                 );
 
-
-                // Default
-                //$mpdf->BiDirectional = false;
-
-                // Zobraz v editoru celou stránku
-                //$mpdf->SetDisplayMode('fullpage');
-
-                //$mpdf->default_lineheight_correction = 1.2;
                 return $mpdf;
         }
 

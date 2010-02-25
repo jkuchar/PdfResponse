@@ -23,12 +23,9 @@ class HomepagePresenter extends BasePresenter
                     ->controlPrototype->class[] = "tinymce";
                 $form->addSubmit("doPDFka", "Do PDFka!");
 
-                $template = $this->createTemplate();
-                $template->setFile(APP_DIR."/templates/Homepage/pdf-source.phtml");
-
                 $form->setDefaults(
                     array(
-                        "html"=>$template->__toString()
+                        "html" => $this->createTemplate()->setFile(APP_DIR."/templates/Homepage/pdf-source.phtml")->__toString()
                     )
                 );
 
@@ -36,20 +33,37 @@ class HomepagePresenter extends BasePresenter
         }
 
         public function onSubmit(AppForm $form){
-                $vals = $form->values;
-                /*$template = $this->createTemplate();
-                $template->setFile(APP_DIR."/templates/pdf.phtml");*/
-                $pdfRes = new PDFResponse($vals["html"]);
-                $pdfRes->author = "Jan Kuchař";
-                //$pdfRes->onBeforeComplete[] = "test";
+                $values = $form->values;
 
-                $mpdf = $pdfRes->mPDF;
-		// Embed some JavaScript
-                $mpdf->IncludeJS("app.alert('This is alert box created by JavaScript in this PDF file!',3);");
-		$mpdf->IncludeJS("app.alert('Now opening print dialog',1);");
-		$mpdf->OpenPrintDialog();
-		
-                $this->terminate($pdfRes);
+		// Create PDFResponse object
+                $pdf = new PDFResponse($values["html"]);
+
+		// Všechny tyto konfigurace jsou volitelné:
+			
+			// Orientace stránky
+			$pdf->pageOrientaion = PDFResponse::ORIENTATION_LANDSCAPE;
+			// Formát stránky
+			$pdf->pageFormat = "A0";
+			// Okraje stránky
+			$pdf->pageMargins = "100,0,100,0,20,60";
+			// Způsob zobrazení PDF
+			$pdf->displayLayout = "continuous";
+			// Velikost zobrazení
+			$pdf->displayZoom = "fullwidth";
+			// Název dokumentu
+			$pdf->documentTitle = "Nadpis stránky";
+			// Dokument vytvořil:
+			$pdf->documentAuthor = "Jan Kuchař";
+
+			// Callback - těsně před odesláním výstupu do prohlížeče
+			//$pdfRes->onBeforeComplete[] = "test";
+
+			$pdf->mPDF->IncludeJS("app.alert('This is alert box created by JavaScript in this PDF file!',3);");
+			$pdf->mPDF->IncludeJS("app.alert('Now opening print dialog',1);");
+			$pdf->mPDF->OpenPrintDialog();
+
+		// Ukončíme presenter -> předáme řízení PDFresponse
+                $this->terminate($pdf);
         }
 
 }
