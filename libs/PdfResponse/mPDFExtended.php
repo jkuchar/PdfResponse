@@ -40,10 +40,8 @@ class mPDFExtended extends mPDF {
 	}
 	// </editor-fold>
 
-	function OpenPrintDialog($dialog) {
-		$param=($dialog ? 'true' : 'false');
-		$script="print($param);";
-		$this->IncludeJS($script);
+	function OpenPrintDialog() {
+		$this->IncludeJS("print();");
 	}
 
 } 

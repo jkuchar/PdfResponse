@@ -122,6 +122,19 @@ class PDFResponse extends Object implements IPresenterResponse
 	public $multiLanguage = false;
 
 	/**
+	 * Add this style sheet to the document (CSS)
+	 * @var string
+	 */
+	public $styles = "";
+
+	/**
+	 * Ignore styles in HTML document
+	 * When using this feature, you MUST also install SimpleHTMLDom to your application!
+	 * @var bool
+	 */
+	public $ignoreStylesInHTMLDocument = false;
+
+	/**
 	 * mPDFExtended
 	 * @var mPDFExtended
 	 */
@@ -187,14 +200,52 @@ class PDFResponse extends Object implements IPresenterResponse
 		} else {
 			$html = $this->source;
 		}
+
+		// Fix: $html can't be empty (mPDF generates Fatal error)
+		if(empty($html)) {
+			$html = "<html><body></body></html>";
+		}
                 
                 $mpdf = $this->getMPDF();
 		$mpdf->biDirectional = $this->multiLanguage;
                 $mpdf->SetAuthor($this->documentAuthor);
                 $mpdf->SetTitle($this->documentTitle);
 		$mpdf->SetDisplayMode($this->displayZoom,$this->displayLayout);
-                $mpdf->WriteHTML($html,2);
 
+		// @see: http://mpdf1.com/manual/index.php?tid=121&searchstring=writeHTML
+		if($this->ignoreStylesInHTMLDocument) {
+
+			// copied from mPDF -> removes comments
+			$html = preg_replace('/<!--mpdf/i','',$html);
+			$html = preg_replace('/mpdf-->/i','',$html);
+			$html = preg_replace('/<\!\-\-.*?\-\->/s','',$html);
+
+			// deletes all <style> tags
+			$parsedHtml = new simple_html_dom($html);
+			foreach($parsedHtml->find("style") AS $el) {
+				$el->outertext = "";
+			}
+			$html = $parsedHtml->__toString();
+
+			$mode = 2; // If <body> tags are found, all html outside these tags are discarded, and the rest is parsed as content for the document. If no <body> tags are found, all html is parsed as content. Prior to mPDF 4.2 the default CSS was not parsed when using mode #2
+		}else{
+			$mode = 0; // Parse all: HTML + CSS
+		}
+
+		// Add content
+                $mpdf->WriteHTML(
+			$html,
+			$mode
+		);
+
+		// Add styles
+		if(!empty($this->styles)) {
+			$mpdf->WriteHTML(
+				$this->styles,
+				1
+			);
+		}
+		
                 $this->onBeforeComplete($mpdf);
 
                 $mpdf->Output(String::webalize($this->documentTitle),'I');

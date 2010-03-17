@@ -55,6 +55,12 @@ class HomepagePresenter extends BasePresenter
 			// Dokument vytvořil:
 			$pdf->documentAuthor = "Jan Kuchař";
 
+			// Ignorovat styly v html (v tagu <style>?)
+			//$pdf->ignoreStylesInHTMLDocument = true;
+
+			// Další styly mimo HTML dokument
+			//$pdf->styles .= "p {font-size: 80%;}";
+
 			// Callback - těsně před odesláním výstupu do prohlížeče
 			//$pdfRes->onBeforeComplete[] = "test";
 
