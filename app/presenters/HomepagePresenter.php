@@ -45,7 +45,7 @@ class HomepagePresenter extends BasePresenter
 			// Formát stránky
 			$pdf->pageFormat = "A0";
 			// Okraje stránky
-			$pdf->pageMargins = "100,0,100,0,20,60";
+			$pdf->pageMargins = "100,100,100,100,20,60";
 			// Způsob zobrazení PDF
 			$pdf->displayLayout = "continuous";
 			// Velikost zobrazení

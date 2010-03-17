@@ -1,100 +1,240 @@
-<!--mpdf<style>mpdf-->
-<!--mpdf
-	/* Tento styl bude použit pouze v PDF */
-	html,body{
-		font-family: sans-serif;
-		font-size: 300%;
-	}
+<html>
+<head>
+	<!--mpdf<style type="text/JavaScript">mpdf-->
+	<!--mpdf
 
-	body {
-		background-color: #3e59ff;
-		color: white;
-	}
+		/* Tento styl bude použit pouze v PDF */
+		html, body {
+			font-family: sans-serif;
+			font-size: 300%;
+			background-color: #3e59ff;
+			color: white;
+		}
 
-	table tr td {
-		border: 0,1cm solid white;
-	}
+		table tr td {
+			border: 0.1cm solid white;
+		}
 
-	a {
-		color: lightgray;
-		font-size: 200%;
-	}
-mpdf-->
-<!--mpdf</mpdf--><!--mpdfstyle>mpdf-->
-<!-- Tyto kličky jsou kvůli TinyMCE nikoli kvůli mPDF! -->
+		a {
+			color: lightgray;
+			font-size: 200%;
+		}
+	mpdf-->
+	<!--mpdf</mpdf--><!--mpdfstyle>mpdf-->
+	<!-- Tyto kličky jsou kvůli TinyMCE nikoli kvůli mPDF! -->
+</head>
+<body>
+	<!--mpdf
+	<htmlpageheader name="MyHeader1">
+		Toto je hlavička dokumentu!
+	</htmlpageheader>
+	<htmlpagefooter name="MyFooter1">
+		Toto je patička dokumentu!
+	</htmlpagefooter>
+ 
+	<sethtmlpageheader name="MyHeader1" value="on" show-this-page="1" />
+	<sethtmlpagefooter name="MyFooter1" value="on" />
+	 mpdf-->
+	 
+	<h1>Ahoj 1</h1>
+	<h2>Ahoj 2</h2>
+	<h3>Ahoj 3</h3>
+	<h4>Ahoj 4</h4>
+	<h5>Ahoj 5</h5>
+	<h6>Ahoj 6</h6>
 
-<h1>Ahoj 1</h1>
-<h2>Ahoj 2</h2>
-<h3>Ahoj 3</h3>
-<h4>Ahoj 4</h4>
-<h5>Ahoj 5</h5>
-<h6>Ahoj 6</h6>
+	<!--mpdf
+	<div style="font-size: 200px;">Tato věta bude pouze v souboru PDF a bude opravdu veliká!</div>
+	mpdf-->
+	<h1>Poř&aacute;dn&aacute; tabulka:</h1>
+	<table style="width: 100%;" border="0">
+		<tbody>
+			<tr>
+				<td style="border-style: solid; border-width: 2px;"><strong>Testtovac&iacute; buňka</strong></td>
+				<td style="border-style: solid; border-width: 2px;">
+					<h1>&scaron;ěěčě&scaron;č+ě&scaron;čřž&yacute;&aacute;&iacute;&eacute;</h1>
+				</td>
+				<td style="border-style: solid; border-width: 2px;" valign="top">123456789</td>
+				<td style="border-style: solid; border-width: 2px;" valign="bottom">
+					<p>a<span style="font-size: large;">b<span style="text-decoration: underline;">cdefg</span>hi<strong>jkl</strong><em>m</em></span>n</p>
+				</td>
+				<td style="border-style: solid; border-width: 2px;">zyx</td>
+			</tr>
+			<tr>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+			</tr>
+			<tr>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+			</tr>
+			<tr>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+			</tr>
+			<tr>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+				<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
+			</tr>
+		</tbody>
+	</table>
 
-<!--mpdf
-<div style="font-size: 200px;">Tato věta bude pouze v souboru PDF a bude opravdu veliká!</div>
-mpdf-->
-<h1>Poř&aacute;dn&aacute; tabulka:</h1>
-<table style="width: 100%;" border="0">
-	<tbody>
-		<tr>
-			<td style="border-style: solid; border-width: 2px;"><strong>Testtovac&iacute; buňka</strong></td>
-			<td style="border-style: solid; border-width: 2px;">
-				<h1>&scaron;ěěčě&scaron;č+ě&scaron;čřž&yacute;&aacute;&iacute;&eacute;</h1>
-			</td>
-			<td style="border-style: solid; border-width: 2px;" valign="top">123456789</td>
-			<td style="border-style: solid; border-width: 2px;" valign="bottom">
-				<p>a<span style="font-size: large;">b<span style="text-decoration: underline;">cdefg</span>hi<strong>jkl</strong><em>m</em></span>n</p>
-			</td>
-			<td style="border-style: solid; border-width: 2px;">zyx</td>
-		</tr>
-		<tr>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-		</tr>
-		<tr>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-		</tr>
-		<tr>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-		</tr>
-		<tr>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-			<td style="border-style: solid; border-width: 2px;">&nbsp;</td>
-		</tr>
-	</tbody>
-</table>
 
-<h1>Zde se nachází moudro z české <a href="http://cs.wikipedia.org/wiki/Abeceda">wikipedie</a>.</h1>
 
-<h2>Abeceda</h2>
+	<h1>Zde se nachází moudro z české <a href="http://cs.wikipedia.org/wiki/Abeceda">wikipedie</a>.</h1>
 
-<p>Abeceda je sada znaků – písmen, jimiž se graficky vyjadřují hlásky. Název je odvozen z prvních 4 znaků abecedy (latinky). Název „alfabeta“ používaný často v cizích jazycích je podobně odvozen z abecedy řecké.
+	<h2>Abeceda</h2>
 
-<p>Abeceda „mezinárodní“, tj. základní znaky bez háčků, čárek, či jiných diakritických znamének, je shodná s anglickou abecedou:
+	<p>Abeceda je sada znaků – písmen, jimiž se graficky vyjadřují hlásky. Název je odvozen z prvních 4 znaků abecedy (latinky). Název „alfabeta“ používaný často v cizích jazycích je podobně odvozen z abecedy řecké.
 
-<p>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+	<p>Abeceda „mezinárodní“, tj. základní znaky bez háčků, čárek, či jiných diakritických znamének, je shodná s anglickou abecedou:
 
-<p>26 znaků
+	<p>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 
-<p>Kromě diakritických znamének většina abeced neuznává za samostatné písmeno ani Ch.
-<h2>Česká abeceda</h2>
+	<p>26 znaků
 
-<p>česká abeceda sestává ze 42 písmen: a, á, b, c, č, d, ď, e, é, ě, f, g, h, ch, i, í, j, k, l, m, n, ň, o, ó, p, q, r, ř, s, š, t, ť, u, ú, ů, v, w, x, y, ý, z, ž.
+	<p>Kromě diakritických znamének většina abeced neuznává za samostatné písmeno ani Ch.
 
-<p>Písmena F (s výjimkou slov doufat, zoufat a zvukomalebných slov), G, Q, W, X se nevyskytují v původně českých slovech, ale jen slovech cizích, či přejatých.
 
-<p>Kromě těchto písmen se v původem českých slovech nevyskytuje ani písmeno Ó (vyjma slov emfatických, např. móře).
+
+	<h2>Česká abeceda</h2>
+
+	<p>česká abeceda sestává ze 42 písmen: a, á, b, c, č, d, ď, e, é, ě, f, g, h, ch, i, í, j, k, l, m, n, ň, o, ó, p, q, r, ř, s, š, t, ť, u, ú, ů, v, w, x, y, ý, z, ž.
+
+	<p>Písmena F (s výjimkou slov doufat, zoufat a zvukomalebných slov), G, Q, W, X se nevyskytují v původně českých slovech, ale jen slovech cizích, či přejatých.
+
+	<p>Kromě těchto písmen se v původem českých slovech nevyskytuje ani písmeno Ó (vyjma slov emfatických, např. móře).
+
+	<h1>Zde se nachází moudro z české <a href="http://cs.wikipedia.org/wiki/Abeceda">wikipedie</a>.</h1>
+
+	<h2>Abeceda</h2>
+
+	<p>Abeceda je sada znaků – písmen, jimiž se graficky vyjadřují hlásky. Název je odvozen z prvních 4 znaků abecedy (latinky). Název „alfabeta“ používaný často v cizích jazycích je podobně odvozen z abecedy řecké.
+
+	<p>Abeceda „mezinárodní“, tj. základní znaky bez háčků, čárek, či jiných diakritických znamének, je shodná s anglickou abecedou:
+
+	<p>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+
+	<p>26 znaků
+
+	<p>Kromě diakritických znamének většina abeced neuznává za samostatné písmeno ani Ch.
+
+
+
+	<h2>Česká abeceda</h2>
+
+	<p>česká abeceda sestává ze 42 písmen: a, á, b, c, č, d, ď, e, é, ě, f, g, h, ch, i, í, j, k, l, m, n, ň, o, ó, p, q, r, ř, s, š, t, ť, u, ú, ů, v, w, x, y, ý, z, ž.
+
+	<p>Písmena F (s výjimkou slov doufat, zoufat a zvukomalebných slov), G, Q, W, X se nevyskytují v původně českých slovech, ale jen slovech cizích, či přejatých.
+
+	<p>Kromě těchto písmen se v původem českých slovech nevyskytuje ani písmeno Ó (vyjma slov emfatických, např. móře).
+
+	<h1>Zde se nachází moudro z české <a href="http://cs.wikipedia.org/wiki/Abeceda">wikipedie</a>.</h1>
+
+	<h2>Abeceda</h2>
+
+	<p>Abeceda je sada znaků – písmen, jimiž se graficky vyjadřují hlásky. Název je odvozen z prvních 4 znaků abecedy (latinky). Název „alfabeta“ používaný často v cizích jazycích je podobně odvozen z abecedy řecké.
+
+	<p>Abeceda „mezinárodní“, tj. základní znaky bez háčků, čárek, či jiných diakritických znamének, je shodná s anglickou abecedou:
+
+	<p>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+
+	<p>26 znaků
+
+	<p>Kromě diakritických znamének většina abeced neuznává za samostatné písmeno ani Ch.
+
+
+
+	<h2>Česká abeceda</h2>
+
+	<p>česká abeceda sestává ze 42 písmen: a, á, b, c, č, d, ď, e, é, ě, f, g, h, ch, i, í, j, k, l, m, n, ň, o, ó, p, q, r, ř, s, š, t, ť, u, ú, ů, v, w, x, y, ý, z, ž.
+
+	<p>Písmena F (s výjimkou slov doufat, zoufat a zvukomalebných slov), G, Q, W, X se nevyskytují v původně českých slovech, ale jen slovech cizích, či přejatých.
+
+	<p>Kromě těchto písmen se v původem českých slovech nevyskytuje ani písmeno Ó (vyjma slov emfatických, např. móře).
+
+	<h1>Zde se nachází moudro z české <a href="http://cs.wikipedia.org/wiki/Abeceda">wikipedie</a>.</h1>
+
+	<h2>Abeceda</h2>
+
+	<p>Abeceda je sada znaků – písmen, jimiž se graficky vyjadřují hlásky. Název je odvozen z prvních 4 znaků abecedy (latinky). Název „alfabeta“ používaný často v cizích jazycích je podobně odvozen z abecedy řecké.
+
+	<p>Abeceda „mezinárodní“, tj. základní znaky bez háčků, čárek, či jiných diakritických znamének, je shodná s anglickou abecedou:
+
+	<p>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+
+	<p>26 znaků
+
+	<p>Kromě diakritických znamének většina abeced neuznává za samostatné písmeno ani Ch.
+
+
+
+	<h2>Česká abeceda</h2>
+
+	<p>česká abeceda sestává ze 42 písmen: a, á, b, c, č, d, ď, e, é, ě, f, g, h, ch, i, í, j, k, l, m, n, ň, o, ó, p, q, r, ř, s, š, t, ť, u, ú, ů, v, w, x, y, ý, z, ž.
+
+	<p>Písmena F (s výjimkou slov doufat, zoufat a zvukomalebných slov), G, Q, W, X se nevyskytují v původně českých slovech, ale jen slovech cizích, či přejatých.
+
+	<p>Kromě těchto písmen se v původem českých slovech nevyskytuje ani písmeno Ó (vyjma slov emfatických, např. móře).
+
+	<h1>Zde se nachází moudro z české <a href="http://cs.wikipedia.org/wiki/Abeceda">wikipedie</a>.</h1>
+
+	<h2>Abeceda</h2>
+
+	<p>Abeceda je sada znaků – písmen, jimiž se graficky vyjadřují hlásky. Název je odvozen z prvních 4 znaků abecedy (latinky). Název „alfabeta“ používaný často v cizích jazycích je podobně odvozen z abecedy řecké.
+
+	<p>Abeceda „mezinárodní“, tj. základní znaky bez háčků, čárek, či jiných diakritických znamének, je shodná s anglickou abecedou:
+
+	<p>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+
+	<p>26 znaků
+
+	<p>Kromě diakritických znamének většina abeced neuznává za samostatné písmeno ani Ch.
+
+
+
+	<h2>Česká abeceda</h2>
+
+	<p>česká abeceda sestává ze 42 písmen: a, á, b, c, č, d, ď, e, é, ě, f, g, h, ch, i, í, j, k, l, m, n, ň, o, ó, p, q, r, ř, s, š, t, ť, u, ú, ů, v, w, x, y, ý, z, ž.
+
+	<p>Písmena F (s výjimkou slov doufat, zoufat a zvukomalebných slov), G, Q, W, X se nevyskytují v původně českých slovech, ale jen slovech cizích, či přejatých.
+
+	<p>Kromě těchto písmen se v původem českých slovech nevyskytuje ani písmeno Ó (vyjma slov emfatických, např. móře).
+
+	<h1>Zde se nachází moudro z české <a href="http://cs.wikipedia.org/wiki/Abeceda">wikipedie</a>.</h1>
+
+	<h2>Abeceda</h2>
+
+	<p>Abeceda je sada znaků – písmen, jimiž se graficky vyjadřují hlásky. Název je odvozen z prvních 4 znaků abecedy (latinky). Název „alfabeta“ používaný často v cizích jazycích je podobně odvozen z abecedy řecké.
+
+	<p>Abeceda „mezinárodní“, tj. základní znaky bez háčků, čárek, či jiných diakritických znamének, je shodná s anglickou abecedou:
+
+	<p>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+
+	<p>26 znaků
+
+	<p>Kromě diakritických znamének většina abeced neuznává za samostatné písmeno ani Ch.
+
+
+
+	<h2>Česká abeceda</h2>
+
+	<p>česká abeceda sestává ze 42 písmen: a, á, b, c, č, d, ď, e, é, ě, f, g, h, ch, i, í, j, k, l, m, n, ň, o, ó, p, q, r, ř, s, š, t, ť, u, ú, ů, v, w, x, y, ý, z, ž.
+
+	<p>Písmena F (s výjimkou slov doufat, zoufat a zvukomalebných slov), G, Q, W, X se nevyskytují v původně českých slovech, ale jen slovech cizích, či přejatých.
+
+	<p>Kromě těchto písmen se v původem českých slovech nevyskytuje ani písmeno Ó (vyjma slov emfatických, např. móře).
+</body>
+</html>

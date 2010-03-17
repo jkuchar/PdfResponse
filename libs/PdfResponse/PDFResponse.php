@@ -195,6 +195,8 @@ class PDFResponse extends Object implements IPresenterResponse
 	public function send()
 	{
 		if ($this->source instanceof ITemplate) {
+			$this->source->pdfResponse = $this;
+			$this->source->mPDF = $this->getMPDF();
 			$html = $this->source->__toString();
 
 		} else {
