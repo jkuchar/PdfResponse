@@ -1,119 +1,131 @@
 <?php
 
 /**
+ * PdfResponse
+ * -----------
+ * Wrapper of mPDF.
+ * Generate PDF from Nette Framework in one line.
+ *
+ * @author     Jan Kuchař
+ * @copyright  Copyright (c) 2010 Jan Kuchař (http://mujserver.net)
+ * @license    LGPL
+ * @link       http://addons.nettephp.com/cs/pdfresponse
+ */
+
+
+/**
  * @property-read mPDFExtended $mPDF
  */
-class PDFResponse extends Object implements IPresenterResponse
-{
-        /**
-         * path to mPDF.php
-         * @var string
-         */
+class PDFResponse extends Object implements IPresenterResponse {
+	/**
+	 * path to mPDF.php
+	 * @var string
+	 */
 	public static $mPDFPath = "%libsDir%/PdfResponse/mpdf/mpdf.php";
-
+	
 	/**
 	 * Source data
 	 * @var mixed
 	 */
 	private $source;
 
-        /**
-         * Callback - create mPDF object
-         * @var Callback
-         */
-        public $createMPDF = null;
+	/**
+	 * Callback - create mPDF object
+	 * @var Callback
+	 */
+	public $createMPDF = null;
 
-        const ORIENTATION_PORTRAIT  = "P";
-        const ORIENTATION_LANDSCAPE = "L";
+	const ORIENTATION_PORTRAIT  = "P";
+	const ORIENTATION_LANDSCAPE = "L";
 
-        /**
-         * Specifies page orientation.
-         * You can use constants:<br>
-         *   ORIENTATION_PORTRAIT (default)<br>
-         *   ORIENTATION_LANDSCAPE
-         *
-         * @var string
-         */
-        public $pageOrientaion = self::ORIENTATION_PORTRAIT;
+	/**
+	 * Specifies page orientation.
+	 * You can use constants:<br>
+	 *   ORIENTATION_PORTRAIT (default)<br>
+	 *   ORIENTATION_LANDSCAPE
+	 *
+	 * @var string
+	 */
+	public $pageOrientaion = self::ORIENTATION_PORTRAIT;
 
-        /**
-         * Specifies format of the document<br>
-         * Allowed values:<br>
-         *   Values (case-insensitive)<br>
-         *   A0 - A10<br>
-         *   B0 - B10<br>
-         *   C0 - C10<br>
-         *   4A0<br>
-         *   2A0<br>
-         *   RA0 - RA4<br>
-         *   SRA0 - SRA4<br>
-         *   Letter<br>
-         *   Legal<br>
-         *   Executive<br>
-         *   Folio<br>
-         *   Demy<br>
-         *   Royal<br>
-         *   A (Type A paperback 111x178mm)<br>
-         *   B (Type B paperback 128x198mm)<br>
-         *
-         * @var string
-         */
-        public $pageFormat = "A4";
+	/**
+	 * Specifies format of the document<br>
+	 * Allowed values:<br>
+	 *   Values (case-insensitive)<br>
+	 *   A0 - A10<br>
+	 *   B0 - B10<br>
+	 *   C0 - C10<br>
+	 *   4A0<br>
+	 *   2A0<br>
+	 *   RA0 - RA4<br>
+	 *   SRA0 - SRA4<br>
+	 *   Letter<br>
+	 *   Legal<br>
+	 *   Executive<br>
+	 *   Folio<br>
+	 *   Demy<br>
+	 *   Royal<br>
+	 *   A (Type A paperback 111x178mm)<br>
+	 *   B (Type B paperback 128x198mm)<br>
+	 *
+	 * @var string
+	 */
+	public $pageFormat = "A4";
 
-        /**
-         * Margins in this order:<br>
-         *   top<br>
-         *   right<br>
-         *   bottom<br>
-         *   left<br>
-         *   header<br>
-         *   footer<br>
-         *
-         * @var string
-         */
-        public $pageMargins = "16,15,16,15,9,9";
+	/**
+	 * Margins in this order:<br>
+	 *   top<br>
+	 *   right<br>
+	 *   bottom<br>
+	 *   left<br>
+	 *   header<br>
+	 *   footer<br>
+	 *
+	 * @var string
+	 */
+	public $pageMargins = "16,15,16,15,9,9";
 
-        /**
-         * Author of the document
-         * @var string
-         */
-        public $documentAuthor = "Nette Framework - Pdf response";
+	/**
+	 * Author of the document
+	 * @var string
+	 */
+	public $documentAuthor = "Nette Framework - Pdf response";
 
-        /**
-         * Title of the document
-         * @var string
-         */
-        public $documentTitle = "Unnamed document";
+	/**
+	 * Title of the document
+	 * @var string
+	 */
+	public $documentTitle = "Unnamed document";
 
-        /**
-         * This parameter specifies the magnification (zoom) of the display when the document is opened.<br>
-         * Values (case-sensitive)<br>
-         *   fullpage: Fit a whole page in the screen<br>
-         *   fullwidth: Fit the width of the page in the screen<br>
-         *   real: Display at real size<br>
-         *   default: User's default setting in Adobe Reader<br>
-         *   INTEGER : Display at a percentage zoom (e.g. 90 will display at 90% zoom)<br>
-         *
-         * @var string|int
-         */
-        public $displayZoom = "default";
+	/**
+	 * This parameter specifies the magnification (zoom) of the display when the document is opened.<br>
+	 * Values (case-sensitive)<br>
+	 *   fullpage: Fit a whole page in the screen<br>
+	 *   fullwidth: Fit the width of the page in the screen<br>
+	 *   real: Display at real size<br>
+	 *   default: User's default setting in Adobe Reader<br>
+	 *   INTEGER : Display at a percentage zoom (e.g. 90 will display at 90% zoom)<br>
+	 *
+	 * @var string|int
+	 */
+	public $displayZoom = "default";
 
-        /**
-         * Specify the page layout to be used when the document is opened.<br>
-         * Values (case-sensitive)<br>
-         *   single: Display one page at a time<br>
-         *   continuous: Display the pages in one column<br>
-         *   two: Display the pages in two columns<br>
-         *   default: User's default setting in Adobe Reader<br>
-         * @var string
-         */
-        public $displayLayout = "continuous";
+	/**
+	 * Specify the page layout to be used when the document is opened.<br>
+	 * Values (case-sensitive)<br>
+	 *   single: Display one page at a time<br>
+	 *   continuous: Display the pages in one column<br>
+	 *   two: Display the pages in two columns<br>
+	 *   default: User's default setting in Adobe Reader<br>
+	 * @var string
+	 */
+	public $displayLayout = "continuous";
 
-        /**
-         * Nette Callbacks
-         * @var array
-         */
-        public $onBeforeComplete = array();
+	/**
+	 * Nette Callbacks
+	 * @var array
+	 */
+	public $onBeforeComplete = array();
 
 	/**
 	 * Multi-language document
@@ -138,41 +150,40 @@ class PDFResponse extends Object implements IPresenterResponse
 	 * mPDFExtended
 	 * @var mPDFExtended
 	 */
-        private $mPDF = null;
+	private $mPDF = null;
 
-        function getMargins(){
-            $margins = explode(",", $this->pageMargins);
-            if(count($margins) !== 6) {
-                throw new InvalidStateException("You must specify all margins! For example: 16,15,16,15,9,9");
-            }
+	function getMargins() {
+		$margins = explode(",", $this->pageMargins);
+		if(count($margins) !== 6) {
+			throw new InvalidStateException("You must specify all margins! For example: 16,15,16,15,9,9");
+		}
 
-            $dictionary = array(
-                0 => "top",
-                1 => "right",
-                2 => "bottom",
-                3 => "left",
-                4 => "header",
-                5 => "footer"
-            );
+		$dictionary = array(
+			0 => "top",
+			1 => "right",
+			2 => "bottom",
+			3 => "left",
+			4 => "header",
+			5 => "footer"
+		);
 
-            $marginsOut = array();
-            foreach($margins AS $key => $val){
-                $val = (int)$val;
-                if($val < 0) {
-                    throw new InvalidArgumentException("Margin must not be negative number!");
-                }
-                $marginsOut[$dictionary[$key]] = $val;
-            }
-            
-            return $marginsOut;
-        }
+		$marginsOut = array();
+		foreach($margins AS $key => $val) {
+			$val = (int)$val;
+			if($val < 0) {
+				throw new InvalidArgumentException("Margin must not be negative number!");
+			}
+			$marginsOut[$dictionary[$key]] = $val;
+		}
+
+		return $marginsOut;
+	}
 
 	/**
 	 * @param  mixed  renderable variable
 	 */
-	public function __construct($source)
-	{
-                $this->createMPDF = callback($this,"createMPDF");
+	public function __construct($source) {
+		$this->createMPDF = callback($this,"createMPDF");
 		$this->source = $source;
 	}
 
@@ -181,8 +192,7 @@ class PDFResponse extends Object implements IPresenterResponse
 	/**
 	 * @return mixed
 	 */
-	final public function getSource()
-	{
+	final public function getSource() {
 		return $this->source;
 	}
 
@@ -192,8 +202,7 @@ class PDFResponse extends Object implements IPresenterResponse
 	 * Sends response to output.
 	 * @return void
 	 */
-	public function send()
-	{
+	public function send() {
 		if ($this->source instanceof ITemplate) {
 			$this->source->pdfResponse = $this;
 			$this->source->mPDF = $this->getMPDF();
@@ -207,11 +216,11 @@ class PDFResponse extends Object implements IPresenterResponse
 		if(empty($html)) {
 			$html = "<html><body></body></html>";
 		}
-                
-                $mpdf = $this->getMPDF();
+
+		$mpdf = $this->getMPDF();
 		$mpdf->biDirectional = $this->multiLanguage;
-                $mpdf->SetAuthor($this->documentAuthor);
-                $mpdf->SetTitle($this->documentTitle);
+		$mpdf->SetAuthor($this->documentAuthor);
+		$mpdf->SetTitle($this->documentTitle);
 		$mpdf->SetDisplayMode($this->displayZoom,$this->displayLayout);
 
 		// @see: http://mpdf1.com/manual/index.php?tid=121&searchstring=writeHTML
@@ -230,12 +239,12 @@ class PDFResponse extends Object implements IPresenterResponse
 			$html = $parsedHtml->__toString();
 
 			$mode = 2; // If <body> tags are found, all html outside these tags are discarded, and the rest is parsed as content for the document. If no <body> tags are found, all html is parsed as content. Prior to mPDF 4.2 the default CSS was not parsed when using mode #2
-		}else{
+		}else {
 			$mode = 0; // Parse all: HTML + CSS
 		}
 
 		// Add content
-                $mpdf->WriteHTML(
+		$mpdf->WriteHTML(
 			$html,
 			$mode
 		);
@@ -247,64 +256,64 @@ class PDFResponse extends Object implements IPresenterResponse
 				1
 			);
 		}
-		
-                $this->onBeforeComplete($mpdf);
 
-                $mpdf->Output(String::webalize($this->documentTitle),'I');
+		$this->onBeforeComplete($mpdf);
+
+		$mpdf->Output(String::webalize($this->documentTitle),'I');
 	}
 
 
-        /**
-         * Returns mPDF object
-         * @return mPDFExtended
-         */
-        public function getMPDF(){
-                if(!$this->mPDF instanceof mPDF) {
-			if($this->createMPDF instanceof Callback and $this->createMPDF->isCallable()){
+	/**
+	 * Returns mPDF object
+	 * @return mPDFExtended
+	 */
+	public function getMPDF() {
+		if(!$this->mPDF instanceof mPDF) {
+			if($this->createMPDF instanceof Callback and $this->createMPDF->isCallable()) {
 				$mpdf = $this->createMPDF->invoke($this);
 				if(!($mpdf instanceof mPDF)) {
-				    throw new InvalidStateException("Callback function createMPDF must return mPDF object!");
+					throw new InvalidStateException("Callback function createMPDF must return mPDF object!");
 				}
 				$this->mPDF = $mpdf;
 			}else
 				throw new InvalidStateException("Callback createMPDF is not callable or is not instance of Nette\Callback!");
-                }
-                return $this->mPDF;
-        }
+		}
+		return $this->mPDF;
+	}
 
 
 
-        /**
-         * Creates and returns mPDF object
-         * @param PDFResponse $response
-         * @return mPDFExtended
-         */
-        public function createMPDF(){
+	/**
+	 * Creates and returns mPDF object
+	 * @param PDFResponse $response
+	 * @return mPDFExtended
+	 */
+	public function createMPDF() {
 		/*if(!self::$mPDFPath) {
 			self::$mPDFPath = dirname(__FILE__)."/mpdf/mpdf.php";
 		}*/
-                $mpdfPath = Environment::expand(self::$mPDFPath);
-                define('_MPDF_PATH',dirname($mpdfPath)."/");
-                require($mpdfPath);
+		$mpdfPath = Environment::expand(self::$mPDFPath);
+		define('_MPDF_PATH',dirname($mpdfPath)."/");
+		require($mpdfPath);
 
-                $margins = $this->getMargins();
+		$margins = $this->getMargins();
 
-                //  [ float $margin_header , float $margin_footer [, string $orientation ]]]]]])
-                $mpdf = new mPDFExtended(
-                    'utf-8',            // string $codepage
-                    $this->pageFormat,  // mixed $format
-                    '',                 // float $default_font_size
-                    '',                 // string $default_font
-                    $margins["left"],   // float $margin_left
-                    $margins["right"],  // float $margin_right
-                    $margins["top"],    // float $margin_top
-                    $margins["bottom"], // float $margin_bottom
-                    $margins["header"], // float $margin_header
-                    $margins["footer"], // float $margin_footer
-                    $this->pageOrientaion
-                );
+		//  [ float $margin_header , float $margin_footer [, string $orientation ]]]]]])
+		$mpdf = new mPDFExtended(
+			'utf-8',            // string $codepage
+			$this->pageFormat,  // mixed $format
+			'',                 // float $default_font_size
+			'',                 // string $default_font
+			$margins["left"],   // float $margin_left
+			$margins["right"],  // float $margin_right
+			$margins["top"],    // float $margin_top
+			$margins["bottom"], // float $margin_bottom
+			$margins["header"], // float $margin_header
+			$margins["footer"], // float $margin_footer
+			$this->pageOrientaion
+		);
 
-                return $mpdf;
-        }
+		return $mpdf;
+	}
 
 }

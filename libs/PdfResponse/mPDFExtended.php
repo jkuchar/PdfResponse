@@ -1,5 +1,23 @@
 <?php
 
+/**
+ * PdfResponse
+ * -----------
+ * Wrapper of mPDF.
+ * Generate PDF from Nette Framework in one line.
+ *
+ * @author     Jan Kuchař
+ * @copyright  Copyright (c) 2010 Jan Kuchař (http://mujserver.net)
+ * @license    LGPL
+ * @link       http://addons.nettephp.com/cs/pdfresponse
+ */
+
+
+/**
+ * Extended version of mPDF
+ *  - added support for JavaScript
+ *  - shortcut for opening print dialog
+ */
 class mPDFExtended extends mPDF {
 
 	// <editor-fold defaultstate="collapsed" desc="JavaScript support - use $mpf->IncludeJS($yourScript)">
