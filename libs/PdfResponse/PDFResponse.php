@@ -16,12 +16,14 @@
 /**
  * @property-read mPDFExtended $mPDF
  */
-class PDFResponse extends Object implements IPresenterResponse {
+class PdfResponse extends Object implements IPresenterResponse {
+	
 	/**
 	 * path to mPDF.php
 	 * @var string
 	 */
 	public static $mPDFPath = "%libsDir%/PdfResponse/mpdf/mpdf.php";
+	
 	
 	/**
 	 * Source data
@@ -29,57 +31,76 @@ class PDFResponse extends Object implements IPresenterResponse {
 	 */
 	private $source;
 
+	
 	/**
 	 * Callback - create mPDF object
 	 * @var Callback
 	 */
 	public $createMPDF = null;
 
+	
+	/**
+	 * Portrait page orientation
+	 */
 	const ORIENTATION_PORTRAIT  = "P";
+	
+	/**
+	 * Landscape page orientation
+	 */
 	const ORIENTATION_LANDSCAPE = "L";
 
 	/**
 	 * Specifies page orientation.
-	 * You can use constants:<br>
-	 *   ORIENTATION_PORTRAIT (default)<br>
-	 *   ORIENTATION_LANDSCAPE
-	 *
+	 * You can use constants:
+	 * <ul>
+	 *   <li>PdfResponse::ORIENTATION_PORTRAIT (default)
+	 *   <li>PdfResponse::ORIENTATION_LANDSCAPE
+	 * </ul>
+	 * 
 	 * @var string
 	 */
 	public $pageOrientaion = self::ORIENTATION_PORTRAIT;
 
+	
 	/**
 	 * Specifies format of the document<br>
-	 * Allowed values:<br>
-	 *   Values (case-insensitive)<br>
-	 *   A0 - A10<br>
-	 *   B0 - B10<br>
-	 *   C0 - C10<br>
-	 *   4A0<br>
-	 *   2A0<br>
-	 *   RA0 - RA4<br>
-	 *   SRA0 - SRA4<br>
-	 *   Letter<br>
-	 *   Legal<br>
-	 *   Executive<br>
-	 *   Folio<br>
-	 *   Demy<br>
-	 *   Royal<br>
-	 *   A (Type A paperback 111x178mm)<br>
-	 *   B (Type B paperback 128x198mm)<br>
+	 * <br>
+	 * Allowed values: (Values are case-<b>in</b>sensitive)
+	 * <ul>
+	 *   <li>A0 - A10
+	 *   <li>B0 - B10
+	 *   <li>C0 - C10
+	 *   <li>4A0
+	 *   <li>2A0
+	 *   <li>RA0 - RA4
+	 *   <li>SRA0 - SRA4
+	 *   <li>Letter
+	 *   <li>Legal
+	 *   <li>Executive
+	 *   <li>Folio
+	 *   <li>Demy
+	 *   <li>Royal
+	 *   <li>A<i> (Type A paperback 111x178mm)</i>
+	 *   <li>B<i> (Type B paperback 128x198mm)</i>
+	 * </ul>
 	 *
 	 * @var string
 	 */
 	public $pageFormat = "A4";
 
 	/**
-	 * Margins in this order:<br>
-	 *   top<br>
-	 *   right<br>
-	 *   bottom<br>
-	 *   left<br>
-	 *   header<br>
-	 *   footer<br>
+	 * Margins in this order:
+	 * <ol>
+	 *   <li>top
+	 *   <li>right
+	 *   <li>bottom
+	 *   <li>left
+	 *   <li>header
+	 *   <li>footer
+	 * </ol>
+	 *
+	 * Please use values <b>higer than 0</b>. In some PDF browser zero values may
+	 * cause problems!
 	 *
 	 * @var string
 	 */
@@ -99,59 +120,68 @@ class PDFResponse extends Object implements IPresenterResponse {
 
 	/**
 	 * This parameter specifies the magnification (zoom) of the display when the document is opened.<br>
-	 * Values (case-sensitive)<br>
-	 *   fullpage: Fit a whole page in the screen<br>
-	 *   fullwidth: Fit the width of the page in the screen<br>
-	 *   real: Display at real size<br>
-	 *   default: User's default setting in Adobe Reader<br>
-	 *   INTEGER : Display at a percentage zoom (e.g. 90 will display at 90% zoom)<br>
-	 *
+	 * Values (case-<b>sensitive</b>)
+	 * <ul>
+	 *   <li><b>fullpage</b>: Fit a whole page in the screen
+	 *   <li><b>fullwidth</b>: Fit the width of the page in the screen
+	 *   <li><b>real</b>: Display at real size
+	 *   <li><b>default</b>: User's default setting in Adobe Reader
+	 *   <li><i>integer</i>: Display at a percentage zoom (e.g. 90 will display at 90% zoom)
+	 * </ul>
+	 * 
 	 * @var string|int
 	 */
 	public $displayZoom = "default";
 
 	/**
 	 * Specify the page layout to be used when the document is opened.<br>
-	 * Values (case-sensitive)<br>
-	 *   single: Display one page at a time<br>
-	 *   continuous: Display the pages in one column<br>
-	 *   two: Display the pages in two columns<br>
-	 *   default: User's default setting in Adobe Reader<br>
+	 * Values (case-<b>sensitive</b>)
+	 * <ul>   
+	 *   <li><b>single</b>: Display one page at a time
+	 *   <li><b>continuous</b>: Display the pages in one column
+	 *   <li><b>two</b>: Display the pages in two columns
+	 *   <li><b>default</b>: User's default setting in Adobe Reader
+	 * </ul>
+	 * 
 	 * @var string
 	 */
 	public $displayLayout = "continuous";
 
 	/**
-	 * Nette Callbacks
-	 * @var array
+	 * Before document output starts
+	 * @var callback
 	 */
 	public $onBeforeComplete = array();
 
 	/**
-	 * Multi-language document
+	 * Multi-language document?
 	 * @var bool
 	 */
 	public $multiLanguage = false;
 
 	/**
-	 * Add this style sheet to the document (CSS)
+	 * Additional stylesheet as a <b>string</b>
 	 * @var string
 	 */
 	public $styles = "";
 
 	/**
-	 * Ignore styles in HTML document
+	 * <b>Ignore</b> styles in HTML document
 	 * When using this feature, you MUST also install SimpleHTMLDom to your application!
 	 * @var bool
 	 */
 	public $ignoreStylesInHTMLDocument = false;
 
 	/**
-	 * mPDFExtended
+	 * mPDFExtended instance
 	 * @var mPDFExtended
 	 */
 	private $mPDF = null;
 
+	/**
+	 * Getts margins as <b>array</b>
+	 * @return array
+	 */
 	function getMargins() {
 		$margins = explode(",", $this->pageMargins);
 		if(count($margins) !== 6) {
@@ -190,6 +220,7 @@ class PDFResponse extends Object implements IPresenterResponse {
 
 
 	/**
+	 * Getts source document
 	 * @return mixed
 	 */
 	final public function getSource() {
