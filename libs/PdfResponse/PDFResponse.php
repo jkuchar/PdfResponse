@@ -179,6 +179,38 @@ class PdfResponse extends Object implements IPresenterResponse {
 	private $mPDF = null;
 
 	/**
+	 * Document name on output
+	 * @var string
+	 */
+	public $outputName = null;
+
+	/**
+	 * send the file inline to the browser. The plug-in is used if available. The name given by filename is used when one selects the "Save as" option on the link generating the PDF.
+	 */
+	const OUTPUT_INLINE = "I";
+
+	/**
+	 * send to the browser and force a file download with the name given by filename.
+	 */
+	const OUTPUT_DOWNLOAD = "D";
+
+	/**
+	 * save to a local file with the name given by filename (may include a path).
+	 */
+	const OUTPUT_FILE = "F";
+
+	/**
+	 * return the document as a string. filename is ignored.
+	 */
+	const OUTPUT_STRING = "S";
+
+	/**
+	 * Output destination
+	 * @var string
+	 */
+	public $outputDestination = self::OUTPUT_INLINE;
+
+	/**
 	 * Getts margins as <b>array</b>
 	 * @return array
 	 */
@@ -290,7 +322,11 @@ class PdfResponse extends Object implements IPresenterResponse {
 
 		$this->onBeforeComplete($mpdf);
 
-		$mpdf->Output(String::webalize($this->documentTitle),'I');
+		if(!$this->outputName) {
+			$this->outputName = String::webalize($this->documentTitle).".pdf";
+		}
+
+		$mpdf->Output($this->outputName,$this->outputDestination);
 	}
 
 
