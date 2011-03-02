@@ -306,6 +306,29 @@ class PdfResponse extends Object implements IPresenterResponse {
 			$mode = 0; // Parse all: HTML + CSS
 		}
 
+
+		if(class_exists("simple_html_dom",true)) {
+			// Support for base64 encoded images - workaround
+			$parsedHtml = new simple_html_dom($html);
+			$i = 1000;
+			foreach($parsedHtml->find("img") AS $element) {
+				if(!substr($element->src,0,5) == "data:") continue;
+				$matches = array();
+				$int = preg_match('/^data:(.*);base64,(.*)$/',str_replace(array("\r","\n"),"",$element->src),$matches);
+				if($int != 1) continue;;
+				$mime = $matches[1];
+				$base64 = $matches[2];
+				$data = base64_decode($base64);
+				if($data === false) continue;
+				$propertyName = "base64Image".$i;
+				$mpdf->$propertyName = $data;
+				$element->src = "var:".$propertyName;
+				$i++;
+			}
+			$html = $parsedHtml->__toString();
+		}
+
+
 		// Add content
 		$mpdf->WriteHTML(
 			$html,
