@@ -252,10 +252,37 @@ class PdfResponse extends Object implements IPresenterResponse {
 
 
 	/**
-	 * Getts source document
-	 * @return mixed
+	 * Getts source document html
+	 * @return string
+	 * @throws InvalidStateException
 	 */
-	final public function getSource() {
+	public function getSource() {
+		$source = $this->getRawSource();
+
+		// String given
+		if(is_string($source)) {
+			return $source;
+		};
+
+		// Nette template given
+		if ($source instanceof ITemplate) {
+			$source->pdfResponse = $this;
+			$source->mPDF = $this->getMPDF();
+			return $source->__toString();
+
+		};
+
+		// Other case - not supported
+		throw new InvalidStateException("Source is not supported! (type: ".
+			(is_object($source) ? ("object of class " . get_class($source)) : gettype($source)).
+		")");
+	}
+
+	public function getRawSource() {
+		if(!$this->source) {
+			throw new InvalidStateException("Source is not defined!");
+		}
+		
 		return $this->source;
 	}
 
@@ -266,15 +293,9 @@ class PdfResponse extends Object implements IPresenterResponse {
 	 * @return void
 	 */
 	public function send() {
-		if ($this->source instanceof ITemplate) {
-			$this->source->pdfResponse = $this;
-			$this->source->mPDF = $this->getMPDF();
-			$html = $this->source->__toString();
-
-		} else {
-			$html = $this->source;
-		}
-
+		// Throws exception if sources can not be processed
+		$html = $this->getSource();
+		
 		// Fix: $html can't be empty (mPDF generates Fatal error)
 		if(empty($html)) {
 			$html = "<html><body></body></html>";
