@@ -51,12 +51,22 @@ class PdfResponse extends Object implements IPresenterResponse {
 
 	/**
 	 * Specifies page orientation.
+	 *
 	 * You can use constants:
 	 * <ul>
 	 *   <li>PdfResponse::ORIENTATION_PORTRAIT (default)
 	 *   <li>PdfResponse::ORIENTATION_LANDSCAPE
 	 * </ul>
-	 * 
+	 *
+	 * <b>In some usages this may not work.</b>
+	 * If this setting does not work for you,
+	 * you can specify page orientation by setting
+	 * page size and orientation in style sheet of
+	 * source document.
+	 * <pre>
+	 * @page { sheet-size: A4-L; }
+	 * </pre>
+	 *
 	 * @var string
 	 */
 	public $pageOrientaion = self::ORIENTATION_PORTRAIT;
