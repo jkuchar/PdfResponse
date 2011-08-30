@@ -343,14 +343,18 @@ class PdfResponse extends Object implements IPresenterResponse {
 			$parsedHtml = new simple_html_dom($html);
 			$i = 1000;
 			foreach($parsedHtml->find("img") AS $element) {
-				if(!substr($element->src,0,5) == "data:") continue;
-				$matches = array();
-				$int = preg_match('/^data:(.*);base64,(.*)$/',str_replace(array("\r","\n"),"",$element->src),$matches);
-				if($int != 1) continue;;
-				$mime = $matches[1];
-				$base64 = $matches[2];
+				$boundary1 = "data:";
+				$pos1 = strlen($boundary1);
+				if(!substr($element->src,0,$pos1) == $boundary1) continue;
+				$pos2 = strpos($element->src,";",$pos1);
+				if($pos2 === false) continue;
+				$mime = substr($element->src, $pos1, $pos2-$pos1);
+				$boundary = "base64,";
+				$base64 = substr($element->src, $pos2+strlen($boundary)+1);
+				
 				$data = base64_decode($base64);
 				if($data === false) continue;
+				
 				$propertyName = "base64Image".$i;
 				$mpdf->$propertyName = $data;
 				$element->src = "var:".$propertyName;
