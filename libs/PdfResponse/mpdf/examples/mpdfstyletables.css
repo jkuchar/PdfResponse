@@ -11,6 +11,8 @@
 		thead td { font-weight: bold; }
 		tfoot td { font-weight: bold; }
 
+		thead td, thead th, tfoot td, tfoot th { font-variant: small-caps; }
+
 		.headerrow td, .headerrow th { background-gradient: linear #b7cebd #f5f8f5 0 1 0 0.2;  }
 		.footerrow td, .footerrow th { background-gradient: linear #b7cebd #f5f8f5 0 1 0 0.2;  }
 

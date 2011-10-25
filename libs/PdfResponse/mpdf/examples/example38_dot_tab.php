@@ -8,7 +8,7 @@ $html = '<h3>Menu</h3>
 
 <p style="text-align: left;">Fusce eleifend neque sit amet erat. Integer consectetuer nulla non orci. Morbi feugiat <dottab /> &pound;3700.00</p>
 
-<p style="text-align: left;">Cras odio. Donec mattis, nisi id euismod auctor, neque metus pellentesque risus, at eleifend lacus sapien et risus <dottab /> &pound;27.00</p>
+<p style="text-align: left; color: #880000;">Cras odio. Donec mattis, nisi id euismod auctor, neque metus pellentesque risus, at eleifend lacus sapien et risus <dottab /> &pound;27.00</p>
 
 <p style="text-align: left;">Phasellus metus. Phasellus feugiat, lectus ac aliquam molestie, leo lacus tincidunt turpis, vel aliquam quam odio et sapien. Mauris ante pede, auctor ac, suscipit quis, malesuada sed, nulla. Integer sit amet odio sit amet lectus luctus euismod <dottab /> &pound;7.00</p>
 

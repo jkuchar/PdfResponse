@@ -14,18 +14,20 @@ h1 { margin-bottom: 0; }
 <tr>
 <td>GIF</td>
 <td>JPG</td>
+<td>JPG (CMYK)</td>
 <td>PNG</td>
 <td>BMP</td>
 <td>WMF</td>
 <td>SVG</td>
 </tr>
 <tr>
-<td><img style="vertical-align: top" src="tiger.gif" width="85" /></td>
-<td><img style="vertical-align: top" src="tiger.jpg" width="85" /></td>
-<td><img style="vertical-align: top" src="tiger.png" width="85" /></td>
-<td><img style="vertical-align: top" src="tiger.bmp" width="85" /></td>
-<td><img style="vertical-align: top" src="tiger2.wmf" width="85" /></td>
-<td><img style="vertical-align: top" src="tiger.svg" width="85" /></td>
+<td><img style="vertical-align: top" src="tiger.gif" width="80" /></td>
+<td><img style="vertical-align: top" src="tiger.jpg" width="80" /></td>
+<td><img style="vertical-align: top" src="tigercmyk.jpg" width="80" /></td>
+<td><img style="vertical-align: top" src="tiger.png" width="80" /></td>
+<td><img style="vertical-align: top" src="tiger.bmp" width="80" /></td>
+<td><img style="vertical-align: top" src="tiger2.wmf" width="80" /></td>
+<td><img style="vertical-align: top" src="tiger.svg" width="80" /></td>
 </tr>
 </tr>
 <tr>
@@ -33,12 +35,13 @@ h1 { margin-bottom: 0; }
 </tr>
 <tr>
 <tr>
-<td><img style="vertical-align: top; opacity: 0.5" src="tiger.gif" width="85" /></td>
-<td><img style="vertical-align: top; opacity: 0.5" src="tiger.jpg" width="85" /></td>
-<td><img style="vertical-align: top; opacity: 0.5" src="tiger.png" width="85" /></td>
-<td><img style="vertical-align: top; opacity: 0.5" src="tiger.bmp" width="85" /></td>
-<td><img style="vertical-align: top; opacity: 0.5" src="tiger2.wmf" width="85" /></td>
-<td><img style="vertical-align: top; opacity: 0.5" src="tiger.svg" width="85" /></td>
+<td><img style="vertical-align: top; opacity: 0.5" src="tiger.gif" width="80" /></td>
+<td><img style="vertical-align: top; opacity: 0.5" src="tiger.jpg" width="80" /></td>
+<td><img style="vertical-align: top; opacity: 0.5" src="tigercmyk.jpg" width="80" /></td>
+<td><img style="vertical-align: top; opacity: 0.5" src="tiger.png" width="80" /></td>
+<td><img style="vertical-align: top; opacity: 0.5" src="tiger.bmp" width="80" /></td>
+<td><img style="vertical-align: top; opacity: 0.5" src="tiger2.wmf" width="80" /></td>
+<td><img style="vertical-align: top; opacity: 0.5" src="tiger.svg" width="80" /></td>
 </tr>
 </table>
 

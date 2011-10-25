@@ -29,8 +29,8 @@
 	@page bigsquare {
 		size: 15cm 20cm;
 		margin-left: 4cm;
-		marks: cross;	 /* crop | cross | none */
-		background: transparent url('bg.jpg') repeat scroll left top; 
+		marks: crop cross;	 /* crop | cross | none */
+		background: transparent url('bg.jpg') repeat scroll 5mm 5mm;  /* position inset by bleedMargin */
 	}
 
 	@page bigsquare :right {

@@ -1,7 +1,7 @@
 <?php
 
 $excl = array( 'TABLES', 'LISTS', 'IMAGES-CORE', 
-'IMAGES-WMF', 'TABLES-ADVANCED-BORDERS', 'HTMLHEADERS-FOOTERS', 'COLUMNS', 'TOC', 'INDEX', 'BOOKMARKS', 'BARCODES', 'FORMS', 'WATERMARK', 'RTL', 'INDIC', 'ANNOTATIONS', 'GRADIENTS', 'BACKGROUND-IMAGES', 'CSS-FLOAT', 'CSS-IMAGE-FLOAT', 'CSS-POSITION', 'CSS-PAGE', 'BORDER-RADIUS', 'HYPHENATION', 'ENCRYPTION', 'DIRECTW', 'IMPORTS');
+'IMAGES-BMP', 'IMAGES-WMF', 'TABLES-ADVANCED-BORDERS', 'HTMLHEADERS-FOOTERS', 'COLUMNS', 'TOC', 'INDEX', 'BOOKMARKS', 'BARCODES', 'FORMS', 'WATERMARK', 'CJK-FONTS', 'RTL', 'INDIC', 'ANNOTATIONS', 'BACKGROUNDS', 'CSS-FLOAT', 'CSS-IMAGE-FLOAT', 'CSS-POSITION', 'CSS-PAGE', 'BORDER-RADIUS', 'HYPHENATION', 'ENCRYPTION', 'DIRECTW', 'IMPORTS', 'PROGRESS-BAR');
 
 
 	// *DIRECTW* = Write, WriteText, WriteCell, Text, Shaded_box, AutosizeText
@@ -52,7 +52,7 @@ function checkedAll (frm1) {
 <ul>
 <li>For WMF Images, you must include both IMAGES-CORE and IMAGES-WMF</li>
 <li>JPG, PNG and JPG images are supported with IMAGES-CORE</li>
-<li>IMAGES-CORE are required for BACKGROUND-IMAGES or WATERMARKS to work</li>
+<li>IMAGES-CORE are required for BACKGROUNDS (IMAGES) or WATERMARKS to work</li>
 <li>DIRECTW includes the functions to Write directly to the PDF file e.g. Write, WriteText, WriteCell, Text, Shaded_box, AutosizeText</li>
 </ul>
 </div>

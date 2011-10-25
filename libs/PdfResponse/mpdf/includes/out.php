@@ -11,7 +11,7 @@ $dest = $_REQUEST['dest'];
 		header("Content-transfer-encoding: binary\n");
 		if ($dest=='I') {
 			header('Content-Type: application/pdf');
-			header('Content-disposition: inline; filename='.$opname);
+			header('Content-disposition: inline; filename="'.$opname.'"');
 		}
 
 		else if ($dest=='D') {
@@ -31,7 +31,7 @@ $dest = $_REQUEST['dest'];
 			else {
 				header('Content-Type: application/octet-stream');
 			}
-			header('Content-disposition: attachment; filename='.$opname);
+			header('Content-disposition: attachment; filename="'.$opname.'"');
 		}
 		$filesize = filesize($path.$tempfilename);
 		header("Content-length:".$filesize);

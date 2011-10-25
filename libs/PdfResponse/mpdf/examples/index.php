@@ -1,6 +1,7 @@
 <?php
 
 $ff = scandir('./');
+
 sort($ff);
 $files = array();
 foreach($ff AS $f) {
@@ -17,5 +18,23 @@ foreach($files AS $n=>$f) {
 
 echo '</body></html>';
 exit;
+
+
+// For PHP4 compatability
+if (!function_exists('scandir')) {
+	function scandir($dir = './', $sort = 0) {
+		$dir_open = @ opendir($dir);
+		if (! $dir_open)
+			return false;
+		while (($dir_content = readdir($dir_open)) !== false)
+			$files[] = $dir_content;
+		if ($sort == 1)
+			rsort($files, SORT_STRING);
+		else
+			sort($files, SORT_STRING);
+		return $files;
+	}
+} 
+
 
 ?>

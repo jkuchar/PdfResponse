@@ -53,8 +53,8 @@ if(!function_exists('htmlspecialchars_decode')) {
 }
 
 function PreparePreText($text,$ff='//FF//') {
-	$text = str_ireplace('<pre',"<||@mpdf@||pre",$text);
-	$text = str_ireplace('</pre',"<||@mpdf@||/pre",$text);
+	// mPDF 5.0.053
+	$text = htmlspecialchars($text);
 	if ($ff) { $text = str_replace($ff,'</pre><formfeed /><pre>',$text); }
 	return ('<pre>'.$text.'</pre>');
 }
@@ -83,6 +83,7 @@ if(!function_exists('code2utf')){
 	return '?';
   }
 }
+
 
 if(!function_exists('codeHex2utf')){ 
   function codeHex2utf($hex,$lo=true){

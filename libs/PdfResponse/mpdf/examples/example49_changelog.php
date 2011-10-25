@@ -18,12 +18,16 @@ $html = '
 <div style="border:1px solid #555555; background-color: #DDDDDD; padding: 1em; font-size:8pt; font-family: lucidaconsole, mono;">
 ';
 $text = file_get_contents('../CHANGELOG.txt');
+
 $html .= PreparePreText($text);
+
+// This would also work:
+// $html .= '<pre>'.htmlspecialchars($text).'</pre>';
 $html .= '</div>';
 
 //==============================================================
 
-$mpdf->WriteHTML($html,2);	// The 2 is important to prevent <style etc.  being parsed
+$mpdf->WriteHTML($html);
 
 
 $mpdf->Output();

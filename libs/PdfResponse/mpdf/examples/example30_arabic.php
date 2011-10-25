@@ -2,7 +2,7 @@
 
 $html = "
 <style>
-body, p { font-family: irannastaliq; font-size: 15pt;  }
+body, p { font-family: irannastaliq; font-size: 15pt; }
 </style>
 
 <h1>Arabic Languages and Fonts</h1>
@@ -415,7 +415,9 @@ modified Persian letter  &#x649;<br />
 //==============================================================
 include("../mpdf.php");
 
-$mpdf=new mPDF('ar-s'); 
+$mpdf=new mPDF('ar'); 
+
+$mpdf->SetDirectionality('rtl');
 
 $mpdf->SetDisplayMode('fullpage');
 

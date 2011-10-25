@@ -93,13 +93,10 @@ $html = '
 
 //==============================================================
 //==============================================================
-// NB This only works using Core Fonts
-// In other modes, you cannot set jSpacing at runtime, as it is 
-// corrected automatically - unless you set useLang = false;
 //==============================================================
 include("../mpdf.php");
 
-$mpdf=new mPDF('en-GB-c','A4','','',32,25,27,25,16,13); 
+$mpdf=new mPDF('c','A4','','',32,25,27,25,16,13); 
 
 $mpdf->SetDisplayMode('fullpage');
 
@@ -110,17 +107,16 @@ $mpdf->WriteHTML($stylesheet,1);	// The parameter 1 tells that this is css/style
 $mpdf->WriteHTML($html);
 
 // SPACING
-$mpdf->WriteHTML("<h4>Spacing</h4><p>The PDF file definition will not allow word spacing to be changed in multibyte-encoded files. mPDF gets round this by changing the character spacing for each space. Thus both character- and word-spacing are possible. The default is a mixture of both. Only word spacing should be used for cursive languages such as Arabic, and character spacing is essential for CJK languages, where each character is a word.</p>");
+$mpdf->WriteHTML("<h4>Spacing</h4><p>mPDF uses both letter- and word-spacing for text justification. The default is a mixture of both, set by the configurable values jSWord and jSmaxChar. (Only word spacing is used when cursive languages such as Arabic or Indic are detected.) </p>");
 
-$mpdf->jSpacing = 'C';
-
+$mpdf->jSWord = 0;	// Proportion (/1) of space (when justifying margins) to allocate to Word vs. Character
+$mpdf->jSmaxChar = 0;	// Maximum spacing to allocate to character spacing. (0 = no maximum)
 $mpdf->WriteHTML("<h5>Character spacing</h5><p>Maecenas feugiat pede vel risus. Nulla et lectus eleifend <i>verylongwordthatwontsplitanywhere</i> neque sit amet erat</p>");
 
-$mpdf->jSpacing = 'W';
-
-$mpdf->WriteHTML("<h5>Word spacing</h5><p>Maecenas feugiat pede vel risus. Nulla et lectus eleifend <i>verylongwordthatwontsplitanywhere</i> neque sit amet erat</p>");
-
-$mpdf->jSpacing = '';
+// Back to default settings
+$mpdf->jSWord = 0.4;
+$mpdf->jSmaxChar = 2;
+$mpdf->WriteHTML("<h5>Word spacing</h5><p style=\"letter-spacing:0\">Maecenas feugiat pede vel risus. Nulla et lectus eleifend <i>verylongwordthatwontsplitanywhere</i> neque sit amet erat</p>");
 
 $mpdf->WriteHTML("<h5>Mixed Character and Word spacing</h5><p>Maecenas feugiat pede vel risus. Nulla et lectus eleifend <i>verylongwordthatwontsplitanywhere</i> neque sit amet erat</p>");
 
@@ -140,7 +136,7 @@ $mpdf->WriteHTML("<p>Similarly, sub and super texts should not be split when jus
 
 $mpdf->orphansAllowed = 3;
 
-$mpdf->WriteHTML("<p>Similarly, sub and super texts should not be split when justifying text such as references<sup>23</sup>. The references should go to the next line with the word if necessary.</p>");
+$mpdf->WriteHTML("<p>Similarly, sub and super texts should not be split when justifying text such as references<sup>23</sup>. The references should go to the next line with the word if necessary, or remain on the same line.</p>");
 
 
 
