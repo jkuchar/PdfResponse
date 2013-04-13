@@ -1,24 +1,30 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Application
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Application\Routers;
+
+use Nette,
+	Nette\Application;
 
 
 
 /**
- * The bidirectional route for trivial routing via query string.
+ * The bidirectional route for trivial routing via query parameters.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Application
+ * @author     David Grudl
+ *
+ * @property-read array $defaults
+ * @property-read int $flags
  */
-class SimpleRouter extends Object implements IRouter
+class SimpleRouter extends Nette\Object implements Application\IRouter
 {
 	const PRESENTER_KEY = 'presenter';
 	const MODULE_KEY = 'module';
@@ -42,9 +48,12 @@ class SimpleRouter extends Object implements IRouter
 	{
 		if (is_string($defaults)) {
 			$a = strrpos($defaults, ':');
+			if (!$a) {
+				throw new Nette\InvalidArgumentException("Argument must be array or string in format Presenter:action, '$defaults' given.");
+			}
 			$defaults = array(
 				self::PRESENTER_KEY => substr($defaults, 0, $a),
-				'action' => substr($defaults, $a + 1),
+				'action' => $a === strlen($defaults) - 1 ? Application\UI\Presenter::DEFAULT_ACTION : substr($defaults, $a + 1),
 			);
 		}
 
@@ -60,44 +69,47 @@ class SimpleRouter extends Object implements IRouter
 
 
 	/**
-	 * Maps HTTP request to a PresenterRequest object.
-	 * @param  IHttpRequest
-	 * @return PresenterRequest|NULL
+	 * Maps HTTP request to a Request object.
+	 * @return Nette\Application\Request|NULL
 	 */
-	public function match(IHttpRequest $httpRequest)
+	public function match(Nette\Http\IRequest $httpRequest)
 	{
+		if ($httpRequest->getUrl()->getPathInfo() !== '') {
+			return NULL;
+		}
 		// combine with precedence: get, (post,) defaults
 		$params = $httpRequest->getQuery();
 		$params += $this->defaults;
 
 		if (!isset($params[self::PRESENTER_KEY])) {
-			throw new InvalidStateException('Missing presenter.');
+			throw new Nette\InvalidStateException('Missing presenter.');
 		}
 
 		$presenter = $this->module . $params[self::PRESENTER_KEY];
 		unset($params[self::PRESENTER_KEY]);
 
-		return new PresenterRequest(
+		return new Application\Request(
 			$presenter,
 			$httpRequest->getMethod(),
 			$params,
 			$httpRequest->getPost(),
 			$httpRequest->getFiles(),
-			array(PresenterRequest::SECURED => $httpRequest->isSecured())
+			array(Application\Request::SECURED => $httpRequest->isSecured())
 		);
 	}
 
 
 
 	/**
-	 * Constructs absolute URL from PresenterRequest object.
-	 * @param  IHttpRequest
-	 * @param  PresenterRequest
+	 * Constructs absolute URL from Request object.
 	 * @return string|NULL
 	 */
-	public function constructUrl(PresenterRequest $appRequest, IHttpRequest $httpRequest)
+	public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)
 	{
-		$params = $appRequest->getParams();
+		if ($this->flags & self::ONE_WAY) {
+			return NULL;
+		}
+		$params = $appRequest->getParameters();
 
 		// presenter name
 		$presenter = $appRequest->getPresenterName();
@@ -114,14 +126,13 @@ class SimpleRouter extends Object implements IRouter
 			}
 		}
 
-		$uri = $httpRequest->getUri();
-		$uri = ($this->flags & self::SECURED ? 'https://' : 'http://') . $uri->getAuthority() . $uri->getScriptPath();
+		$url = ($this->flags & self::SECURED ? 'https://' : 'http://') . $refUrl->getAuthority() . $refUrl->getPath();
 		$sep = ini_get('arg_separator.input');
 		$query = http_build_query($params, '', $sep ? $sep[0] : '&');
 		if ($query != '') { // intentionally ==
-			$uri .= '?' . $query;
+			$url .= '?' . $query;
 		}
-		return $uri;
+		return $url;
 	}
 
 
@@ -133,6 +144,17 @@ class SimpleRouter extends Object implements IRouter
 	public function getDefaults()
 	{
 		return $this->defaults;
+	}
+
+
+
+	/**
+	 * Returns flags.
+	 * @return int
+	 */
+	public function getFlags()
+	{
+		return $this->flags;
 	}
 
 }

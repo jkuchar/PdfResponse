@@ -1,33 +1,36 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette,
+	Nette\Utils\Html;
 
 
 
 /**
  * Set of radio button controls.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
  *
  * @property   array $items
- * @property-read Html $separatorPrototype
- * @property-read Html $containerPrototype
+ * @property-read Nette\Utils\Html $separatorPrototype
+ * @property-read Nette\Utils\Html $containerPrototype
  */
-class RadioList extends FormControl
+class RadioList extends BaseControl
 {
-	/** @var Html  separator element template */
+	/** @var Nette\Utils\Html  separator element template */
 	protected $separator;
 
-	/** @var Html  container element template */
+	/** @var Nette\Utils\Html  container element template */
 	protected $container;
 
 	/** @var array */
@@ -45,7 +48,9 @@ class RadioList extends FormControl
 		$this->control->type = 'radio';
 		$this->container = Html::el();
 		$this->separator = Html::el('br');
-		if ($items !== NULL) $this->setItems($items);
+		if ($items !== NULL) {
+			$this->setItems($items);
+		}
 	}
 
 
@@ -58,6 +63,17 @@ class RadioList extends FormControl
 	public function getValue($raw = FALSE)
 	{
 		return is_scalar($this->value) && ($raw || isset($this->items[$this->value])) ? $this->value : NULL;
+	}
+
+
+
+	/**
+	 * Has been any radio button selected?
+	 * @return bool
+	 */
+	public function isFilled()
+	{
+		return $this->getValue() !== NULL;
 	}
 
 
@@ -88,7 +104,7 @@ class RadioList extends FormControl
 
 	/**
 	 * Returns separator HTML element template.
-	 * @return Html
+	 * @return Nette\Utils\Html
 	 */
 	final public function getSeparatorPrototype()
 	{
@@ -99,7 +115,7 @@ class RadioList extends FormControl
 
 	/**
 	 * Returns container HTML element template.
-	 * @return Html
+	 * @return Nette\Utils\Html
 	 */
 	final public function getContainerPrototype()
 	{
@@ -111,7 +127,7 @@ class RadioList extends FormControl
 	/**
 	 * Generates control's HTML element.
 	 * @param  mixed
-	 * @return Html
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl($key = NULL)
 	{
@@ -131,7 +147,9 @@ class RadioList extends FormControl
 
 		foreach ($this->items as $k => $val) {
 			$counter++;
-			if ($key !== NULL && $key != $k) continue; // intentionally ==
+			if ($key !== NULL && (string) $key !== (string) $k) {
+				continue;
+			}
 
 			$control->id = $label->for = $id . '-' . $counter;
 			$control->checked = (string) $k === $value;
@@ -140,14 +158,15 @@ class RadioList extends FormControl
 			if ($val instanceof Html) {
 				$label->setHtml($val);
 			} else {
-				$label->setText($this->translate($val));
+				$label->setText($this->translate((string) $val));
 			}
 
 			if ($key !== NULL) {
-				return (string) $control . (string) $label;
+				return Html::el()->add($control)->add($label);
 			}
 
 			$container->add((string) $control . (string) $label . $separator);
+			$control->data('nette-rules', NULL);
 			// TODO: separator after last item?
 		}
 
@@ -166,18 +185,6 @@ class RadioList extends FormControl
 		$label = parent::getLabel($caption);
 		$label->for = NULL;
 		return $label;
-	}
-
-
-
-	/**
-	 * Filled validator: has been any radio button selected?
-	 * @param  IFormControl
-	 * @return bool
-	 */
-	public static function validateFilled(IFormControl $control)
-	{
-		return $control->getValue() !== NULL;
 	}
 
 }

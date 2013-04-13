@@ -1,29 +1,31 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette;
 
 
 
 /**
  * Select box control that allows single item selection.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
  *
  * @property-read mixed $rawValue
+ * @property   bool $prompt
  * @property   array $items
- * @property-read mixed $selectedItem
- * @property-read bool $firstSkipped
+ * @property-read string $selectedItem
  */
-class SelectBox extends FormControl
+class SelectBox extends BaseControl
 {
 	/** @var array */
 	private $items = array();
@@ -31,8 +33,8 @@ class SelectBox extends FormControl
 	/** @var array */
 	protected $allowed = array();
 
-	/** @var bool */
-	private $skipFirst = FALSE;
+	/** @var mixed */
+	private $prompt = FALSE;
 
 	/** @var bool */
 	private $useKeys = TRUE;
@@ -49,8 +51,6 @@ class SelectBox extends FormControl
 		parent::__construct($label);
 		$this->control->setName('select');
 		$this->control->size = $size > 1 ? (int) $size : NULL;
-		$this->control->onfocus = 'this.onmousewheel=function(){return false}';  // prevents accidental change in IE
-		$this->label->onclick = 'document.getElementById(this.htmlFor).focus();return false';  // prevents deselect in IE 5 - 6
 		if ($items !== NULL) {
 			$this->setItems($items);
 		}
@@ -64,12 +64,7 @@ class SelectBox extends FormControl
 	 */
 	public function getValue()
 	{
-		$allowed = $this->allowed;
-		if ($this->skipFirst) {
-			$allowed = array_slice($allowed, 1, count($allowed), TRUE);
-		}
-
-		return is_scalar($this->value) && isset($allowed[$this->value]) ? $this->value : NULL;
+		return is_scalar($this->value) && isset($this->allowed[$this->value]) ? $this->value : NULL;
 	}
 
 
@@ -86,33 +81,50 @@ class SelectBox extends FormControl
 
 
 	/**
-	 * Ignores the first item in select box.
-	 * @param  string
-	 * @return SelectBox  provides a fluent interface
+	 * Has been any item selected?
+	 * @return bool
 	 */
-	public function skipFirst($item = NULL)
+	public function isFilled()
 	{
-		if (is_bool($item)) {
-			$this->skipFirst = $item;
-		} else {
-			$this->skipFirst = TRUE;
-			if ($item !== NULL) {
-				$this->items = array('' => $item) + $this->items;
-				$this->allowed = array('' => '') + $this->allowed;
-			}
-		}
-		return $this;
+		$value = $this->getValue();
+		return is_array($value) ? count($value) > 0 : $value !== NULL;
 	}
 
 
 
 	/**
-	 * Is first item in select box ignored?
-	 * @return bool
+	 * Sets first prompt item in select box.
+	 * @param  string
+	 * @return SelectBox  provides a fluent interface
 	 */
-	final public function isFirstSkipped()
+	public function setPrompt($prompt)
 	{
-		return $this->skipFirst;
+		if ($prompt === TRUE) { // back compatibility
+			$prompt = reset($this->items);
+			unset($this->allowed[key($this->items)], $this->items[key($this->items)]);
+		}
+		$this->prompt = $prompt;
+		return $this;
+	}
+
+
+
+	/** @deprecated */
+	function skipFirst($v = NULL)
+	{
+		trigger_error(__METHOD__ . '() is deprecated; use setPrompt() instead.', E_USER_WARNING);
+		return $this->setPrompt($v);
+	}
+
+
+
+	/**
+	 * Returns first prompt item?
+	 * @return mixed
+	 */
+	final public function getPrompt()
+	{
+		return $this->prompt;
 	}
 
 
@@ -131,34 +143,32 @@ class SelectBox extends FormControl
 	/**
 	 * Sets items from which to choose.
 	 * @param  array
+	 * @param  bool
 	 * @return SelectBox  provides a fluent interface
 	 */
 	public function setItems(array $items, $useKeys = TRUE)
 	{
-		$this->items = $items;
-		$this->allowed = array();
-		$this->useKeys = (bool) $useKeys;
-
-		foreach ($items as $key => $value) {
-			if (!is_array($value)) {
-				$value = array($key => $value);
-			}
-
-			foreach ($value as $key2 => $value2) {
-				if (!$this->useKeys) {
-					if (!is_scalar($value2)) {
-						throw new InvalidArgumentException("All items must be scalars.");
+		$allowed = array();
+		foreach ($items as $k => $v) {
+			foreach ((is_array($v) ? $v : array($k => $v)) as $key => $value) {
+				if (!$useKeys) {
+					if (!is_scalar($value)) {
+						throw new Nette\InvalidArgumentException("All items must be scalar.");
 					}
-					$key2 = $value2;
+					$key = $value;
 				}
 
-				if (isset($this->allowed[$key2])) {
-					throw new InvalidArgumentException("Items contain duplication for key '$key2'.");
+				if (isset($allowed[$key])) {
+					throw new Nette\InvalidArgumentException("Items contain duplication for key '$key'.");
 				}
 
-				$this->allowed[$key2] = $value2;
+				$allowed[$key] = $value;
 			}
 		}
+
+		$this->items = $items;
+		$this->allowed = $allowed;
+		$this->useKeys = (bool) $useKeys;
 		return $this;
 	}
 
@@ -181,63 +191,52 @@ class SelectBox extends FormControl
 	 */
 	public function getSelectedItem()
 	{
-		if (!$this->useKeys) {
-			return $this->getValue();
-
-		} else {
-			$value = $this->getValue();
-			return $value === NULL ? NULL : $this->allowed[$value];
-		}
+		$value = $this->getValue();
+		return ($this->useKeys && $value !== NULL) ? $this->allowed[$value] : $value;
 	}
 
 
 
 	/**
 	 * Generates control's HTML element.
-	 * @return Html
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl()
 	{
-		$control = parent::getControl();
 		$selected = $this->getValue();
 		$selected = is_array($selected) ? array_flip($selected) : array($selected => TRUE);
-		$option = Html::el('option');
+		$control = parent::getControl();
+		$option = Nette\Utils\Html::el('option');
+
+		if ($this->prompt !== FALSE) {
+			$control->add($this->prompt instanceof Nette\Utils\Html
+				? $this->prompt->value('')
+				: (string) $option->value('')->setText($this->translate((string) $this->prompt))
+			);
+		}
 
 		foreach ($this->items as $key => $value) {
 			if (!is_array($value)) {
 				$value = array($key => $value);
 				$dest = $control;
-
 			} else {
-				$dest = $control->create('optgroup')->label($key);
+				$dest = $control->create('optgroup')->label($this->translate($key));
 			}
 
 			foreach ($value as $key2 => $value2) {
-				if ($value2 instanceof Html) {
+				if ($value2 instanceof Nette\Utils\Html) {
 					$dest->add((string) $value2->selected(isset($selected[$key2])));
 
-				} elseif ($this->useKeys) {
-					$dest->add((string) $option->value($key2)->selected(isset($selected[$key2]))->setText($this->translate($value2)));
-
 				} else {
-					$dest->add((string) $option->selected(isset($selected[$value2]))->setText($this->translate($value2)));
+					$key2 = $this->useKeys ? $key2 : $value2;
+					$value2 = $this->translate((string) $value2);
+					$dest->add((string) $option->value($key2)
+						->selected(isset($selected[$key2]))
+						->setText($value2));
 				}
 			}
 		}
 		return $control;
-	}
-
-
-
-	/**
-	 * Filled validator: has been any item selected?
-	 * @param  IFormControl
-	 * @return bool
-	 */
-	public static function validateFilled(IFormControl $control)
-	{
-		$value = $control->getValue();
-		return is_array($value) ? count($value) > 0 : $value !== NULL;
 	}
 
 }

@@ -1,33 +1,35 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Security
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Security;
+
+use Nette;
 
 
 
 /**
  * Default implementation of IIdentity.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Security
+ * @author     David Grudl
  *
- * @property   string $name
+ * @serializationVersion 1.0
+ *
  * @property   mixed $id
  * @property   array $roles
- *
- * @serializationVersion 0.9.3
+ * @property-read array $data
  */
-class Identity extends FreezableObject implements IIdentity
+class Identity extends Nette\FreezableObject implements IIdentity
 {
-	/** @var string */
-	private $name;
+	/** @var mixed */
+	private $id;
 
 	/** @var array */
 	private $roles;
@@ -37,40 +39,40 @@ class Identity extends FreezableObject implements IIdentity
 
 
 	/**
-	 * @param  string  identity name
+	 * @param  mixed   identity ID
 	 * @param  mixed   roles
 	 * @param  array   user data
 	 */
-	public function __construct($name, $roles = NULL, $data = NULL)
+	public function __construct($id, $roles = NULL, $data = NULL)
 	{
-		$this->setName($name);
+		$this->setId($id);
 		$this->setRoles((array) $roles);
-		$this->data = (array) $data;
+		$this->data = $data instanceof \Traversable ? iterator_to_array($data) : (array) $data;
 	}
 
 
 
 	/**
-	 * Sets the name of user.
-	 * @param  string
+	 * Sets the ID of user.
+	 * @param  mixed
 	 * @return Identity  provides a fluent interface
 	 */
-	public function setName($name)
+	public function setId($id)
 	{
 		$this->updating();
-		$this->name = (string) $name;
+		$this->id = is_numeric($id) ? 1 * $id : $id;
 		return $this;
 	}
 
 
 
 	/**
-	 * Returns the name of user.
-	 * @return string
+	 * Returns the ID of user.
+	 * @return mixed
 	 */
-	public function getName()
+	public function getId()
 	{
-		return $this->name;
+		return $this->id;
 	}
 
 
@@ -120,7 +122,7 @@ class Identity extends FreezableObject implements IIdentity
 	public function __set($key, $value)
 	{
 		$this->updating();
-		if ($key === 'name' || $key === 'roles') {
+		if (parent::__isset($key)) {
 			parent::__set($key, $value);
 
 		} else {
@@ -137,12 +139,37 @@ class Identity extends FreezableObject implements IIdentity
 	 */
 	public function &__get($key)
 	{
-		if ($key === 'name' || $key === 'roles') {
+		if (parent::__isset($key)) {
 			return parent::__get($key);
 
 		} else {
 			return $this->data[$key];
 		}
+	}
+
+
+
+	/**
+	 * Is property defined?
+	 * @param  string  property name
+	 * @return bool
+	 */
+	public function __isset($key)
+	{
+		return isset($this->data[$key]) || parent::__isset($key);
+	}
+
+
+
+	/**
+	 * Removes property.
+	 * @param  string  property name
+	 * @return void
+	 * @throws Nette\MemberAccessException
+	 */
+	public function __unset($name)
+	{
+		Nette\ObjectMixin::remove($this, $name);
 	}
 
 }

@@ -1,53 +1,56 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Mail
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Mail;
+
+use Nette;
 
 
 
 /**
- * Sends e-mails via the PHP internal mail() function.
+ * Sends emails via the PHP internal mail() function.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Mail
+ * @author     David Grudl
  */
-class SendmailMailer extends Object implements IMailer
+class SendmailMailer extends Nette\Object implements IMailer
 {
+	/** @var string */
+	public $commandArgs;
+
+
 
 	/**
-	 * Sends e-mail.
-	 * @param  Mail
+	 * Sends email.
 	 * @return void
 	 */
-	public function send(Mail $mail)
+	public function send(Message $mail)
 	{
 		$tmp = clone $mail;
 		$tmp->setHeader('Subject', NULL);
 		$tmp->setHeader('To', NULL);
 
-		$parts = explode(Mail::EOL . Mail::EOL, $tmp->generateMessage(), 2);
-		$linux = strncasecmp(PHP_OS, 'win', 3);
+		$parts = explode(Message::EOL . Message::EOL, $tmp->generateMessage(), 2);
 
-		Tools::tryError();
-		$res = mail(
-			$mail->getEncodedHeader('To'),
-			$mail->getEncodedHeader('Subject'),
-			$linux ? str_replace(Mail::EOL, "\n", $parts[1]) : $parts[1],
-			$linux ? str_replace(Mail::EOL, "\n", $parts[0]) : $parts[0]
+		$args = array(
+			str_replace(Message::EOL, PHP_EOL, $mail->getEncodedHeader('To')),
+			str_replace(Message::EOL, PHP_EOL, $mail->getEncodedHeader('Subject')),
+			str_replace(Message::EOL, PHP_EOL, $parts[1]),
+			str_replace(Message::EOL, PHP_EOL, $parts[0]),
 		);
-
-		if (Tools::catchError($msg)) {
-			throw new InvalidStateException($msg);
-
-		} elseif (!$res) {
-			throw new InvalidStateException('Unable to send email.');
+		if ($this->commandArgs) {
+			$args[] = (string) $this->commandArgs;
+		}
+		if (call_user_func_array('mail', $args) === FALSE) {
+			$error = error_get_last();
+			throw new Nette\InvalidStateException("Unable to send email: $error[message].");
 		}
 	}
 

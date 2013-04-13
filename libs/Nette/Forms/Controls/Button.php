@@ -1,24 +1,26 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette;
 
 
 
 /**
  * Push button control with no default behavior.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
  */
-class Button extends FormControl
+class Button extends BaseControl
 {
 
 	/**
@@ -46,7 +48,7 @@ class Button extends FormControl
 	/**
 	 * Generates control's HTML element.
 	 * @param  string
-	 * @return Html
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl($caption = NULL)
 	{

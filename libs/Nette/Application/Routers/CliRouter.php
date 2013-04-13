@@ -1,24 +1,29 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Application
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Application\Routers;
+
+use Nette,
+	Nette\Application;
 
 
 
 /**
  * The unidirectional router for CLI. (experimental)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Application
+ * @author     David Grudl
+ *
+ * @property-read array $defaults
  */
-class CliRouter extends Object implements IRouter
+class CliRouter extends Nette\Object implements Application\IRouter
 {
 	const PRESENTER_KEY = 'action';
 
@@ -38,11 +43,10 @@ class CliRouter extends Object implements IRouter
 
 
 	/**
-	 * Maps command line arguments to a PresenterRequest object.
-	 * @param  IHttpRequest
-	 * @return PresenterRequest|NULL
+	 * Maps command line arguments to a Request object.
+	 * @return Nette\Application\Request|NULL
 	 */
-	public function match(IHttpRequest $httpRequest)
+	public function match(Nette\Http\IRequest $httpRequest)
 	{
 		if (empty($_SERVER['argv']) || !is_array($_SERVER['argv'])) {
 			return NULL;
@@ -82,7 +86,7 @@ class CliRouter extends Object implements IRouter
 		}
 
 		if (!isset($params[self::PRESENTER_KEY])) {
-			throw new InvalidStateException('Missing presenter & action in route definition.');
+			throw new Nette\InvalidStateException('Missing presenter & action in route definition.');
 		}
 		$presenter = $params[self::PRESENTER_KEY];
 		if ($a = strrpos($presenter, ':')) {
@@ -90,7 +94,7 @@ class CliRouter extends Object implements IRouter
 			$presenter = substr($presenter, 0, $a);
 		}
 
-		return new PresenterRequest(
+		return new Application\Request(
 			$presenter,
 			'CLI',
 			$params
@@ -101,11 +105,9 @@ class CliRouter extends Object implements IRouter
 
 	/**
 	 * This router is only unidirectional.
-	 * @param  IHttpRequest
-	 * @param  PresenterRequest
 	 * @return NULL
 	 */
-	public function constructUrl(PresenterRequest $appRequest, IHttpRequest $httpRequest)
+	public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)
 	{
 		return NULL;
 	}

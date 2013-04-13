@@ -1,28 +1,29 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette;
 
 
 
 /**
  * Multiline text input control.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
  */
 class TextArea extends TextBase
 {
 
 	/**
-	 * @param  string  control name
 	 * @param  string  label
 	 * @param  int  width of the control
 	 * @param  int  height of the control in text lines
@@ -40,7 +41,7 @@ class TextArea extends TextBase
 
 	/**
 	 * Generates control's HTML element.
-	 * @return Html
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl()
 	{

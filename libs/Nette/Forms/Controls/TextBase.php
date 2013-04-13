@@ -1,26 +1,31 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette,
+	Nette\Forms\Form,
+	Nette\Utils\Strings,
+	Nette\Utils\Validators;
 
 
 
 /**
  * Implements the basic functionality common to text input controls.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
  *
  * @property   string $emptyValue
  */
-abstract class TextBase extends FormControl
+abstract class TextBase extends BaseControl
 {
 	/** @var string */
 	protected $emptyValue = '';
@@ -37,7 +42,7 @@ abstract class TextBase extends FormControl
 	 */
 	public function setValue($value)
 	{
-		$this->value = is_scalar($value) ? (string) $value : '';
+		$this->value = is_array($value) ? '' : (string) $value;
 		return $this;
 	}
 
@@ -51,7 +56,7 @@ abstract class TextBase extends FormControl
 	{
 		$value = $this->value;
 		foreach ($this->filters as $filter) {
-			$value = (string) $filter->invoke($value);
+			$value = (string) $filter/*5.2*->invoke*/($value);
 		}
 		return $value === $this->translate($this->emptyValue) ? '' : $value;
 	}
@@ -65,7 +70,7 @@ abstract class TextBase extends FormControl
 	 */
 	public function setEmptyValue($value)
 	{
-		$this->emptyValue = $value;
+		$this->emptyValue = (string) $value;
 		return $this;
 	}
 
@@ -84,24 +89,41 @@ abstract class TextBase extends FormControl
 
 	/**
 	 * Appends input string filter callback.
-	 * @param  callback
+	 * @param  callable
 	 * @return TextBase  provides a fluent interface
 	 */
 	public function addFilter($filter)
 	{
-		$this->filters[] = callback($filter);
+		$this->filters[] = new Nette\Callback($filter);
 		return $this;
 	}
 
 
 
-	public function notifyRule(Rule $rule)
+	public function getControl()
 	{
-		if (is_string($rule->operation) && strcasecmp($rule->operation, ':float') === 0) {
+		$control = parent::getControl();
+		foreach ($this->getRules() as $rule) {
+			if ($rule->type === Nette\Forms\Rule::VALIDATOR && !$rule->isNegative
+				&& ($rule->operation === Form::LENGTH || $rule->operation === Form::MAX_LENGTH)
+			) {
+				$control->maxlength = is_array($rule->arg) ? $rule->arg[1] : $rule->arg;
+			}
+		}
+		if ($this->emptyValue !== '') {
+			$control->data('nette-empty-value', $this->translate($this->emptyValue));
+		}
+		return $control;
+	}
+
+
+
+	public function addRule($operation, $message = NULL, $arg = NULL)
+	{
+		if ($operation === Form::FLOAT) {
 			$this->addFilter(array(__CLASS__, 'filterFloat'));
 		}
-
-		parent::notifyRule($rule);
+		return parent::addRule($operation, $message, $arg);
 	}
 
 
@@ -114,7 +136,7 @@ abstract class TextBase extends FormControl
 	 */
 	public static function validateMinLength(TextBase $control, $length)
 	{
-		return iconv_strlen($control->getValue(), 'UTF-8') >= $length;
+		return Strings::length($control->getValue()) >= $length;
 	}
 
 
@@ -127,7 +149,7 @@ abstract class TextBase extends FormControl
 	 */
 	public static function validateMaxLength(TextBase $control, $length)
 	{
-		return iconv_strlen($control->getValue(), 'UTF-8') <= $length;
+		return Strings::length($control->getValue()) <= $length;
 	}
 
 
@@ -143,8 +165,7 @@ abstract class TextBase extends FormControl
 		if (!is_array($range)) {
 			$range = array($range, $range);
 		}
-		$len = iconv_strlen($control->getValue(), 'UTF-8');
-		return ($range[0] === NULL || $len >= $range[0]) && ($range[1] === NULL || $len <= $range[1]);
+		return Validators::isInRange(Strings::length($control->getValue()), $range);
 	}
 
 
@@ -156,11 +177,7 @@ abstract class TextBase extends FormControl
 	 */
 	public static function validateEmail(TextBase $control)
 	{
-		$atom = "[-a-z0-9!#$%&'*+/=?^_`{|}~]"; // RFC 5322 unquoted characters in local-part
-		$localPart = "(\"([ !\\x23-\\x5B\\x5D-\\x7E]*|\\\\[ -~])+\"|$atom+(\\.$atom+)*)"; // quoted or unquoted
-		$chars = "a-z0-9\x80-\xFF"; // superset of IDN
-		$domain = "[$chars]([-$chars]{0,61}[$chars])"; // RFC 1034 one domain component
-		return (bool) preg_match("(^$localPart@($domain?\\.)+[a-z]{2,14}\\z)i", $control->getValue()); // strict top-level domain
+		return Validators::isEmail($control->getValue());
 	}
 
 
@@ -172,7 +189,15 @@ abstract class TextBase extends FormControl
 	 */
 	public static function validateUrl(TextBase $control)
 	{
-		return (bool) preg_match('/^.+\.[a-z]{2,6}(\\/.*)?$/i', $control->getValue());
+		return Validators::isUrl($control->getValue()) || Validators::isUrl('http://' . $control->getValue());
+	}
+
+
+
+	/** @deprecated */
+	public static function validateRegexp(TextBase $control, $regexp)
+	{
+		return (bool) Strings::match($control->getValue(), $regexp);
 	}
 
 
@@ -183,9 +208,9 @@ abstract class TextBase extends FormControl
 	 * @param  string
 	 * @return bool
 	 */
-	public static function validateRegexp(TextBase $control, $regexp)
+	public static function validatePattern(TextBase $control, $pattern)
 	{
-		return (bool) preg_match($regexp, $control->getValue());
+		return (bool) Strings::match($control->getValue(), "\x01^($pattern)\\z\x01u");
 	}
 
 
@@ -197,7 +222,7 @@ abstract class TextBase extends FormControl
 	 */
 	public static function validateInteger(TextBase $control)
 	{
-		return (bool) preg_match('/^-?[0-9]+$/', $control->getValue());
+		return Validators::isNumericInt($control->getValue());
 	}
 
 
@@ -209,7 +234,7 @@ abstract class TextBase extends FormControl
 	 */
 	public static function validateFloat(TextBase $control)
 	{
-		return (bool) preg_match('/^-?[0-9]*[.,]?[0-9]+$/', $control->getValue());
+		return Validators::isNumeric(static::filterFloat($control->getValue()));
 	}
 
 
@@ -222,7 +247,7 @@ abstract class TextBase extends FormControl
 	 */
 	public static function validateRange(TextBase $control, $range)
 	{
-		return ($range[0] === NULL || $control->getValue() >= $range[0]) && ($range[1] === NULL || $control->getValue() <= $range[1]);
+		return Validators::isInRange($control->getValue(), $range);
 	}
 
 

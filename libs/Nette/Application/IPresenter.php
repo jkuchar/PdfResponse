@@ -1,30 +1,31 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Application
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Application;
+
+use Nette;
 
 
 
 /**
- * Defines method that must be implemented to allow a component to act like a presenter.
+ * Presenter converts Request to IResponse.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Application
+ * @author     David Grudl
  */
 interface IPresenter
 {
 
 	/**
-	 * @param  PresenterRequest
-	 * @return IPresenterResponse
+	 * @return IResponse
 	 */
-	function run(PresenterRequest $request);
+	function run(Request $request);
 
 }

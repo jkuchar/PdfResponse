@@ -1,43 +1,43 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Application
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Application;
+
+use Nette;
 
 
 
 /**
  * The bi-directional router.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Application
+ * @author     David Grudl
  */
 interface IRouter
 {
-	/**#@+ flag */
+	/** only matching route */
 	const ONE_WAY = 1;
+
+	/** HTTPS route */
 	const SECURED = 2;
-	/**#@-*/
 
 	/**
-	 * Maps HTTP request to a PresenterRequest object.
-	 * @param  IHttpRequest
-	 * @return PresenterRequest|NULL
+	 * Maps HTTP request to a Request object.
+	 * @return Request|NULL
 	 */
-	function match(IHttpRequest $httpRequest);
+	function match(Nette\Http\IRequest $httpRequest);
 
 	/**
-	 * Constructs absolute URL from PresenterRequest object.
-	 * @param  IHttpRequest
-	 * @param  PresenterRequest
+	 * Constructs absolute URL from Request object.
 	 * @return string|NULL
 	 */
-	function constructUrl(PresenterRequest $appRequest, IHttpRequest $httpRequest);
+	function constructUrl(Request $appRequest, Nette\Http\Url $refUrl);
 
 }

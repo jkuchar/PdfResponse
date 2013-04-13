@@ -1,202 +1,84 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Loaders
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Loaders;
+
+use Nette;
 
 
 
 /**
  * Nette auto loader is responsible for loading Nette classes and interfaces.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Loaders
+ * @author     David Grudl
  */
 class NetteLoader extends AutoLoader
 {
 	/** @var NetteLoader */
-	public static $instance;
+	private static $instance;
 
-	/** @var string  base file path */
-	public $base;
+	/** @var array */
+	public $renamed = array(
+		'Nette\Configurator' => 'Nette\Config\Configurator',
+		'Nette\Http\User' => 'Nette\Security\User',
+		'Nette\Templating\DefaultHelpers' => 'Nette\Templating\Helpers',
+		'Nette\Latte\ParseException' => 'Nette\Latte\CompileException',
+	);
 
 	/** @var array */
 	public $list = array(
-		'abortexception' => '/Application/Exceptions/AbortException.php',
-		'ambiguousserviceexception' => '/ServiceLocator.php',
-		'annotation' => '/Reflection/Annotation.php',
-		'annotations' => '/Annotations.php',
-		'annotationsparser' => '/Reflection/AnnotationsParser.php',
-		'appform' => '/Application/AppForm.php',
-		'application' => '/Application/Application.php',
-		'applicationexception' => '/Application/Exceptions/ApplicationException.php',
-		'argumentoutofrangeexception' => '/exceptions.php',
-		'arraylist' => '/Collections/ArrayList.php',
-		'arraytools' => '/ArrayTools.php',
-		'authenticationexception' => '/Security/AuthenticationException.php',
-		'autoloader' => '/Loaders/AutoLoader.php',
-		'badrequestexception' => '/Application/Exceptions/BadRequestException.php',
-		'badsignalexception' => '/Application/Exceptions/BadSignalException.php',
-		'basetemplate' => '/Templates/BaseTemplate.php',
-		'button' => '/Forms/Controls/Button.php',
-		'cache' => '/Caching/Cache.php',
-		'cachinghelper' => '/Templates/Filters/CachingHelper.php',
-		'callback' => '/Callback.php',
-		'checkbox' => '/Forms/Controls/Checkbox.php',
-		'classreflection' => '/Reflection/ClassReflection.php',
-		'clirouter' => '/Application/Routers/CliRouter.php',
-		'collection' => '/Collections/Collection.php',
-		'component' => '/Component.php',
-		'componentcontainer' => '/ComponentContainer.php',
-		'config' => '/Config/Config.php',
-		'configadapterini' => '/Config/ConfigAdapterIni.php',
-		'configurator' => '/Configurator.php',
-		'control' => '/Application/Control.php',
-		'conventionalrenderer' => '/Forms/Renderers/ConventionalRenderer.php',
-		'curlybracketsfilter' => '/Templates/Filters/LatteFilter.php',
-		'curlybracketsmacros' => '/Templates/Filters/LatteFilter.php',
-		'datetime53' => '/compatibility/DateTime53.php',
-		'debug' => '/Debug.php',
-		'deprecatedexception' => '/exceptions.php',
-		'directorynotfoundexception' => '/exceptions.php',
-		'downloadresponse' => '/Application/Responses/DownloadResponse.php',
-		'dummystorage' => '/Caching/DummyStorage.php',
-		'environment' => '/Environment.php',
-		'extensionreflection' => '/Reflection/ExtensionReflection.php',
-		'fatalerrorexception' => '/exceptions.php',
-		'filenotfoundexception' => '/exceptions.php',
-		'filestorage' => '/Caching/FileStorage.php',
-		'fileupload' => '/Forms/Controls/FileUpload.php',
-		'forbiddenrequestexception' => '/Application/Exceptions/ForbiddenRequestException.php',
-		'form' => '/Forms/Form.php',
-		'formcontainer' => '/Forms/FormContainer.php',
-		'formcontrol' => '/Forms/Controls/FormControl.php',
-		'formgroup' => '/Forms/FormGroup.php',
-		'forwardingresponse' => '/Application/Responses/ForwardingResponse.php',
-		'framework' => '/Framework.php',
-		'freezableobject' => '/FreezableObject.php',
-		'ftp' => '/Web/Ftp.php',
-		'ftpexception' => '/Web/Ftp.php',
-		'functionreflection' => '/Reflection/FunctionReflection.php',
-		'hashtable' => '/Collections/Hashtable.php',
-		'hiddenfield' => '/Forms/Controls/HiddenField.php',
-		'html' => '/Web/Html.php',
-		'httpcontext' => '/Web/HttpContext.php',
-		'httprequest' => '/Web/HttpRequest.php',
-		'httpresponse' => '/Web/HttpResponse.php',
-		'httpuploadedfile' => '/Web/HttpUploadedFile.php',
-		'iannotation' => '/Reflection/IAnnotation.php',
-		'iauthenticator' => '/Security/IAuthenticator.php',
-		'iauthorizator' => '/Security/IAuthorizator.php',
-		'icachestorage' => '/Caching/ICacheStorage.php',
-		'icollection' => '/Collections/ICollection.php',
-		'icomponent' => '/IComponent.php',
-		'icomponentcontainer' => '/IComponentContainer.php',
-		'iconfigadapter' => '/Config/IConfigAdapter.php',
-		'idebuggable' => '/IDebuggable.php',
-		'identity' => '/Security/Identity.php',
-		'ifiletemplate' => '/Templates/IFileTemplate.php',
-		'iformcontrol' => '/Forms/IFormControl.php',
-		'iformrenderer' => '/Forms/IFormRenderer.php',
-		'ihttprequest' => '/Web/IHttpRequest.php',
-		'ihttpresponse' => '/Web/IHttpResponse.php',
-		'iidentity' => '/Security/IIdentity.php',
-		'ilist' => '/Collections/IList.php',
-		'image' => '/Image.php',
-		'imagebutton' => '/Forms/Controls/ImageButton.php',
-		'imagemagick' => '/ImageMagick.php',
-		'imailer' => '/Mail/IMailer.php',
-		'imap' => '/Collections/IMap.php',
-		'inamingcontainer' => '/Forms/INamingContainer.php',
-		'instancefilteriterator' => '/InstanceFilterIterator.php',
-		'instantclientscript' => '/Forms/Renderers/InstantClientScript.php',
-		'invalidlinkexception' => '/Application/Exceptions/InvalidLinkException.php',
-		'invalidpresenterexception' => '/Application/Exceptions/InvalidPresenterException.php',
-		'invalidstateexception' => '/exceptions.php',
-		'ioexception' => '/exceptions.php',
-		'ipartiallyrenderable' => '/Application/IRenderable.php',
-		'ipermissionassertion' => '/Security/IPermissionAssertion.php',
-		'ipresenter' => '/Application/IPresenter.php',
-		'ipresenterloader' => '/Application/IPresenterLoader.php',
-		'ipresenterresponse' => '/Application/IPresenterResponse.php',
-		'irenderable' => '/Application/IRenderable.php',
-		'iresource' => '/Security/IResource.php',
-		'irole' => '/Security/IRole.php',
-		'irouter' => '/Application/IRouter.php',
-		'iservicelocator' => '/IServiceLocator.php',
-		'iset' => '/Collections/ISet.php',
-		'isignalreceiver' => '/Application/ISignalReceiver.php',
-		'istatepersistent' => '/Application/IStatePersistent.php',
-		'isubmittercontrol' => '/Forms/ISubmitterControl.php',
-		'itemplate' => '/Templates/ITemplate.php',
-		'itranslator' => '/ITranslator.php',
-		'iuser' => '/Web/IUser.php',
-		'jsonresponse' => '/Application/Responses/JsonResponse.php',
-		'keynotfoundexception' => '/Collections/Hashtable.php',
-		'lattefilter' => '/Templates/Filters/LatteFilter.php',
-		'lattemacros' => '/Templates/Filters/LatteMacros.php',
-		'limitedscope' => '/Loaders/LimitedScope.php',
-		'link' => '/Application/Link.php',
-		'mail' => '/Mail/Mail.php',
-		'mailmimepart' => '/Mail/MailMimePart.php',
-		'memberaccessexception' => '/exceptions.php',
-		'memcachedstorage' => '/Caching/MemcachedStorage.php',
-		'methodparameterreflection' => '/Reflection/MethodParameterReflection.php',
-		'methodreflection' => '/Reflection/MethodReflection.php',
-		'multirouter' => '/Application/Routers/MultiRouter.php',
-		'multiselectbox' => '/Forms/Controls/MultiSelectBox.php',
-		'netteloader' => '/Loaders/NetteLoader.php',
-		'notimplementedexception' => '/exceptions.php',
-		'notsupportedexception' => '/exceptions.php',
-		'object' => '/Object.php',
-		'objectmixin' => '/ObjectMixin.php',
-		'paginator' => '/Paginator.php',
-		'permission' => '/Security/Permission.php',
-		'presenter' => '/Application/Presenter.php',
-		'presentercomponent' => '/Application/PresenterComponent.php',
-		'presentercomponentreflection' => '/Application/PresenterComponentReflection.php',
-		'presenterloader' => '/Application/PresenterLoader.php',
-		'presenterrequest' => '/Application/PresenterRequest.php',
-		'propertyreflection' => '/Reflection/PropertyReflection.php',
-		'radiolist' => '/Forms/Controls/RadioList.php',
-		'recursivecomponentiterator' => '/ComponentContainer.php',
-		'recursivehtmliterator' => '/Web/Html.php',
-		'redirectingresponse' => '/Application/Responses/RedirectingResponse.php',
-		'renderresponse' => '/Application/Responses/RenderResponse.php',
-		'robotloader' => '/Loaders/RobotLoader.php',
-		'route' => '/Application/Routers/Route.php',
-		'rule' => '/Forms/Rule.php',
-		'rules' => '/Forms/Rules.php',
-		'safestream' => '/IO/SafeStream.php',
-		'selectbox' => '/Forms/Controls/SelectBox.php',
-		'sendmailmailer' => '/Mail/SendmailMailer.php',
-		'servicelocator' => '/ServiceLocator.php',
-		'session' => '/Web/Session.php',
-		'sessionnamespace' => '/Web/SessionNamespace.php',
-		'set' => '/Collections/Set.php',
-		'simpleauthenticator' => '/Security/SimpleAuthenticator.php',
-		'simplerouter' => '/Application/Routers/SimpleRouter.php',
-		'smartcachingiterator' => '/SmartCachingIterator.php',
-		'snippethelper' => '/Templates/Filters/SnippetHelper.php',
-		'string' => '/String.php',
-		'submitbutton' => '/Forms/Controls/SubmitButton.php',
-		'template' => '/Templates/Template.php',
-		'templatecachestorage' => '/Templates/TemplateCacheStorage.php',
-		'templatefilters' => '/Templates/Filters/TemplateFilters.php',
-		'templatehelpers' => '/Templates/Filters/TemplateHelpers.php',
-		'textarea' => '/Forms/Controls/TextArea.php',
-		'textbase' => '/Forms/Controls/TextBase.php',
-		'textinput' => '/Forms/Controls/TextInput.php',
-		'tools' => '/Tools.php',
-		'uri' => '/Web/Uri.php',
-		'uriscript' => '/Web/UriScript.php',
-		'user' => '/Web/User.php',
+		'NetteModule\MicroPresenter' => '/Application/MicroPresenter',
+		'Nette\Application\AbortException' => '/Application/exceptions',
+		'Nette\Application\ApplicationException' => '/Application/exceptions',
+		'Nette\Application\BadRequestException' => '/Application/exceptions',
+		'Nette\Application\ForbiddenRequestException' => '/Application/exceptions',
+		'Nette\Application\InvalidPresenterException' => '/Application/exceptions',
+		'Nette\ArgumentOutOfRangeException' => '/common/exceptions',
+		'Nette\ArrayHash' => '/common/ArrayHash',
+		'Nette\ArrayList' => '/common/ArrayList',
+		'Nette\Callback' => '/common/Callback',
+		'Nette\Database\Reflection\AmbiguousReferenceKeyException' => '/Database/Reflection/exceptions',
+		'Nette\Database\Reflection\MissingReferenceException' => '/Database/Reflection/exceptions',
+		'Nette\DI\MissingServiceException' => '/DI/exceptions',
+		'Nette\DI\ServiceCreationException' => '/DI/exceptions',
+		'Nette\DateTime' => '/common/DateTime',
+		'Nette\DeprecatedException' => '/common/exceptions',
+		'Nette\DirectoryNotFoundException' => '/common/exceptions',
+		'Nette\Environment' => '/common/Environment',
+		'Nette\FatalErrorException' => '/common/exceptions',
+		'Nette\FileNotFoundException' => '/common/exceptions',
+		'Nette\Framework' => '/common/Framework',
+		'Nette\FreezableObject' => '/common/FreezableObject',
+		'Nette\IFreezable' => '/common/IFreezable',
+		'Nette\IOException' => '/common/exceptions',
+		'Nette\Image' => '/common/Image',
+		'Nette\InvalidArgumentException' => '/common/exceptions',
+		'Nette\InvalidStateException' => '/common/exceptions',
+		'Nette\Latte\CompileException' => '/Latte/exceptions',
+		'Nette\Mail\SmtpException' => '/Mail/SmtpMailer',
+		'Nette\MemberAccessException' => '/common/exceptions',
+		'Nette\NotImplementedException' => '/common/exceptions',
+		'Nette\NotSupportedException' => '/common/exceptions',
+		'Nette\Object' => '/common/Object',
+		'Nette\ObjectMixin' => '/common/ObjectMixin',
+		'Nette\OutOfRangeException' => '/common/exceptions',
+		'Nette\StaticClassException' => '/common/exceptions',
+		'Nette\UnexpectedValueException' => '/common/exceptions',
+		'Nette\UnknownImageFileException' => '/common/Image',
+		'Nette\Utils\AssertionException' => '/Utils/Validators',
+		'Nette\Utils\JsonException' => '/Utils/Json',
+		'Nette\Utils\NeonEntity' => '/Utils/Neon',
+		'Nette\Utils\NeonException' => '/Utils/Neon',
+		'Nette\Utils\RegexpException' => '/Utils/Strings',
+		'Nette\Utils\TokenizerException' => '/Utils/Tokenizer',
 	);
 
 
@@ -208,7 +90,7 @@ class NetteLoader extends AutoLoader
 	public static function getInstance()
 	{
 		if (self::$instance === NULL) {
-			self::$instance = new self;
+			self::$instance = new static;
 		}
 		return self::$instance;
 	}
@@ -222,11 +104,19 @@ class NetteLoader extends AutoLoader
 	 */
 	public function tryLoad($type)
 	{
-		$type = strtolower($type);
-		if (isset($this->list[$type])) {
-			LimitedScope::load($this->base . $this->list[$type]);
+		$type = ltrim($type, '\\');
+		/**/if (isset($this->renamed[$type])) {
+			class_alias($this->renamed[$type], $type);
+			trigger_error("Class $type has been renamed to {$this->renamed[$type]}.", E_USER_WARNING);
+
+		} else/**/if (isset($this->list[$type])) {
+			Nette\Utils\LimitedScope::load(NETTE_DIR . $this->list[$type] . '.php', TRUE);
 			self::$count++;
-		}
+
+		}/**/ elseif (substr($type, 0, 6) === 'Nette\\' && is_file($file = NETTE_DIR . strtr(substr($type, 5), '\\', '/') . '.php')) {
+			Nette\Utils\LimitedScope::load($file, TRUE);
+			self::$count++;
+		}/**/
 	}
 
 }

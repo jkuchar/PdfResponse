@@ -1,24 +1,26 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Loaders
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Loaders;
+
+use Nette;
 
 
 
 /**
  * Auto loader is responsible for loading classes and interfaces.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Loaders
+ * @author     David Grudl
  */
-abstract class AutoLoader extends Object
+abstract class AutoLoader extends Nette\Object
 {
 	/** @var array  list of registered loaders */
 	static private $loaders = array();
@@ -37,7 +39,7 @@ abstract class AutoLoader extends Object
 	{
 		foreach (func_get_args() as $type) {
 			if (!class_exists($type)) {
-				throw new InvalidStateException("Unable to load class or interface '$type'.");
+				throw new Nette\InvalidStateException("Unable to load class or interface '$type'.");
 			}
 		}
 	}
@@ -46,7 +48,7 @@ abstract class AutoLoader extends Object
 
 	/**
 	 * Return all registered autoloaders.
-	 * @return array of AutoLoader
+	 * @return AutoLoader[]
 	 */
 	final public static function getLoaders()
 	{
@@ -62,7 +64,7 @@ abstract class AutoLoader extends Object
 	public function register()
 	{
 		if (!function_exists('spl_autoload_register')) {
-			throw new RuntimeException('spl_autoload does not exist in this PHP installation.');
+			throw new Nette\NotSupportedException('spl_autoload does not exist in this PHP installation.');
 		}
 
 		spl_autoload_register(array($this, 'tryLoad'));

@@ -1,72 +1,75 @@
 <?php
 
 /**
- * Nette Framework
+ * Nette Framework (version 2.0.10 released on $WCDATE$, http://nette.org)
  *
- * Copyright (c) 2004, 2010 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004, 2013 David Grudl (http://davidgrudl.com)
  *
- * This source file is subject to the "Nette license" that is bundled
- * with this package in the file license.txt, and/or GPL license.
- *
- * For more information please see http://nettephp.com
- *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
 
 
 
 /**
- * Check PHP configuration.
+ * Check and reset PHP configuration.
  */
-
-if (version_compare(PHP_VERSION, '5.2.0', '<')) {
-	throw new Exception('Nette Framework requires PHP 5.2.0 or newer.');
+/*5.2*
+if (!defined('PHP_VERSION_ID')) {
+	$tmp = explode('.', PHP_VERSION);
+	define('PHP_VERSION_ID', ($tmp[0] * 10000 + $tmp[1] * 100 + $tmp[2]));
 }
 
+if (PHP_VERSION_ID < 50200) {
+	throw new Exception('Nette Framework requires PHP 5.2.0 or newer.');
+}
+*/
 
-@set_magic_quotes_runtime(FALSE); // intentionally @
+error_reporting(E_ALL | E_STRICT);
+@set_magic_quotes_runtime(FALSE); // @ - deprecated since PHP 5.3.0
+iconv_set_encoding('internal_encoding', 'UTF-8');
+extension_loaded('mbstring') && mb_internal_encoding('UTF-8');
+umask(0);
+@header('X-Powered-By: Nette Framework'); // @ - headers may be sent
+@header('Content-Type: text/html; charset=utf-8'); // @ - headers may be sent
+
+
+
+/**
+ * Load and configure Nette Framework.
+ */
+define('NETTE', TRUE);
+define('NETTE_DIR', __DIR__);
+define('NETTE_VERSION_ID', 20010); // v2.0.10
+define('NETTE_PACKAGE', '5.3');
+
+
+
+require_once __DIR__ . '/common/exceptions.php';
+require_once __DIR__ . '/common/Object.php';
+require_once __DIR__ . '/Utils/LimitedScope.php';
+require_once __DIR__ . '/Loaders/AutoLoader.php';
+require_once __DIR__ . '/Loaders/NetteLoader.php';
+
+
+Nette\Loaders\NetteLoader::getInstance()->register();
+
+require_once __DIR__ . '/Diagnostics/Helpers.php';
+require_once __DIR__ . '/Diagnostics/shortcuts.php';
+require_once __DIR__ . '/Utils/Html.php';
+Nette\Diagnostics\Debugger::_init();
+
+Nette\Utils\SafeStream::register();
 
 
 
 /**
  * Nette\Callback factory.
- * @param  mixed   class, object, function, callback
+ * @param  mixed   class, object, callable
  * @param  string  method
- * @return Callback
+ * @return Nette\Callback
  */
 function callback($callback, $m = NULL)
 {
-	return ($m === NULL && $callback instanceof Callback) ? $callback : new Callback($callback, $m);
+	return new Nette\Callback($callback, $m);
 }
-
-
-
-/**
- * Nette\Debug::dump shortcut.
- */
-if (!function_exists('dump')) {
-	function dump($var)
-	{
-		foreach (func_get_args() as $arg) Debug::dump($arg);
-		return $var;
-	}
-}
-
-
-
-require_once dirname(__FILE__) . '/exceptions.php';
-require_once dirname(__FILE__) . '/Framework.php';
-require_once dirname(__FILE__) . '/Object.php';
-require_once dirname(__FILE__) . '/ObjectMixin.php';
-require_once dirname(__FILE__) . '/Callback.php';
-require_once dirname(__FILE__) . '/Loaders/LimitedScope.php';
-require_once dirname(__FILE__) . '/Loaders/AutoLoader.php';
-require_once dirname(__FILE__) . '/Loaders/NetteLoader.php';
-
-
-NetteLoader::getInstance()->base = dirname(__FILE__);
-NetteLoader::getInstance()->register();

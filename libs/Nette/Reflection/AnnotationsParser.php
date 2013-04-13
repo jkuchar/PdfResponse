@@ -1,40 +1,49 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Reflection
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Reflection;
+
+use Nette,
+	Nette\Utils\Strings;
 
 
 
 /**
  * Annotations support for PHP.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Reflection
+ * @author     David Grudl
  * @Annotation
  */
 final class AnnotationsParser
 {
-	/** @ignore internal single & double quoted PHP string */
+	/** @internal single & double quoted PHP string */
 	const RE_STRING = '\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"';
 
-	/** @ignore internal PHP identifier */
-	const RE_IDENTIFIER = '[_a-zA-Z\x7F-\xFF][_a-zA-Z0-9\x7F-\xFF]*';
+	/** @internal identifier */
+	const RE_IDENTIFIER = '[_a-zA-Z\x7F-\xFF][_a-zA-Z0-9\x7F-\xFF-\\\]*';
 
 	/** @var bool */
 	public static $useReflection;
+
+	/** @var array */
+	public static $inherited = array('description', 'param', 'return');
 
 	/** @var array */
 	private static $cache;
 
 	/** @var array */
 	private static $timestamps;
+
+	/** @var Nette\Caching\IStorage */
+	private static $cacheStorage;
 
 
 
@@ -43,23 +52,23 @@ final class AnnotationsParser
 	 */
 	final public function __construct()
 	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
+		throw new Nette\StaticClassException;
 	}
 
 
 
 	/**
 	 * Returns annotations.
-	 * @param  ReflectionClass|\ReflectionMethod|\ReflectionProperty
+	 * @param  \ReflectionClass|\ReflectionMethod|\ReflectionProperty
 	 * @return array
 	 */
-	public static function getAll(Reflector $r)
+	public static function getAll(\Reflector $r)
 	{
-		if ($r instanceof ReflectionClass) {
+		if ($r instanceof \ReflectionClass) {
 			$type = $r->getName();
 			$member = '';
 
-		} elseif ($r instanceof ReflectionMethod) {
+		} elseif ($r instanceof \ReflectionMethod) {
 			$type = $r->getDeclaringClass()->getName();
 			$member = $r->getName();
 
@@ -69,7 +78,7 @@ final class AnnotationsParser
 		}
 
 		if (!self::$useReflection) { // auto-expire cache
-			$file = $r instanceof ReflectionClass ? $r->getFileName() : $r->getDeclaringClass()->getFileName(); // will be used later
+			$file = $r instanceof \ReflectionClass ? $r->getFileName() : $r->getDeclaringClass()->getFileName(); // will be used later
 			if ($file && isset(self::$timestamps[$file]) && self::$timestamps[$file] !== filemtime($file)) {
 				unset(self::$cache[$type]);
 			}
@@ -81,30 +90,53 @@ final class AnnotationsParser
 		}
 
 		if (self::$useReflection === NULL) { // detects whether is reflection available
-			self::$useReflection = (bool) ClassReflection::from(__CLASS__)->getDocComment();
+			self::$useReflection = (bool) ClassType::from(__CLASS__)->getDocComment();
 		}
 
 		if (self::$useReflection) {
-			return self::$cache[$type][$member] = self::parseComment($r->getDocComment());
+			$annotations = self::parseComment($r->getDocComment());
 
 		} else {
+			if (!self::$cacheStorage) {
+				// trigger_error('Set a cache storage for annotations parser via Nette\Reflection\AnnotationParser::setCacheStorage().', E_USER_WARNING);
+				self::$cacheStorage = new Nette\Caching\Storages\DevNullStorage;
+			}
+			$outerCache = new Nette\Caching\Cache(self::$cacheStorage, 'Nette.Reflection.Annotations');
+
 			if (self::$cache === NULL) {
-				self::$cache = (array) self::getCache()->offsetGet('list');
+				self::$cache = (array) $outerCache->offsetGet('list');
 				self::$timestamps = isset(self::$cache['*']) ? self::$cache['*'] : array();
 			}
 
 			if (!isset(self::$cache[$type]) && $file) {
 				self::$cache['*'][$file] = filemtime($file);
 				self::parseScript($file);
-				self::getCache()->save('list', self::$cache);
+				$outerCache->save('list', self::$cache);
 			}
 
 			if (isset(self::$cache[$type][$member])) {
-				return self::$cache[$type][$member];
+				$annotations = self::$cache[$type][$member];
 			} else {
-				return self::$cache[$type][$member] = array();
+				$annotations = array();
 			}
 		}
+
+		if ($r instanceof \ReflectionMethod && !$r->isPrivate()
+			&& (!$r->isConstructor() || !empty($annotations['inheritdoc'][0])))
+		{
+			try {
+				$inherited = self::getAll(new \ReflectionMethod(get_parent_class($type), $member));
+			} catch (\ReflectionException $e) {
+				try {
+					$inherited = self::getAll($r->getPrototype());
+				} catch (\ReflectionException $e) {
+					$inherited = array();
+				}
+			}
+			$annotations += array_intersect_key($inherited, array_flip(self::$inherited));
+		}
+
+		return self::$cache[$type][$member] = $annotations;
 	}
 
 
@@ -118,16 +150,26 @@ final class AnnotationsParser
 	{
 		static $tokens = array('true' => TRUE, 'false' => FALSE, 'null' => NULL, '' => TRUE);
 
-		preg_match_all('~
-			@('.self::RE_IDENTIFIER.')[ \t]*             ##  annotation
-			(
-				\((?>'.self::RE_STRING.'|[^\'")@]+)+\)|  ##  (value)
-				[^(@\r\n][^@\r\n]*|)                     ##  value
-		~xi', trim($comment, '/*'), $matches, PREG_SET_ORDER);
-
 		$res = array();
-		foreach ($matches as $match)
-		{
+		$comment = preg_replace('#^\s*\*\s?#ms', '', trim($comment, '/*'));
+		$parts = preg_split('#^\s*(?=@'.self::RE_IDENTIFIER.')#m', $comment, 2);
+
+		$description = trim($parts[0]);
+		if ($description !== '') {
+			$res['description'] = array($description);
+		}
+
+		$matches = Strings::matchAll(
+			isset($parts[1]) ? $parts[1] : '',
+			'~
+				(?<=\s|^)@('.self::RE_IDENTIFIER.')[ \t]*      ##  annotation
+				(
+					\((?>'.self::RE_STRING.'|[^\'")@]+)+\)|  ##  (value)
+					[^(@\r\n][^@\r\n]*|)                     ##  value
+			~xi'
+		);
+
+		foreach ($matches as $match) {
 			list(, $name, $value) = $match;
 
 			if (substr($value, 0, 1) === '(') {
@@ -135,9 +177,13 @@ final class AnnotationsParser
 				$key = '';
 				$val = TRUE;
 				$value[0] = ',';
-				while (preg_match('#\s*,\s*(?>('.self::RE_IDENTIFIER.')\s*=\s*)?('.self::RE_STRING.'|[^\'"),\s][^\'"),]*)#A', $value, $m)) {
+				while ($m = Strings::match(
+					$value,
+					'#\s*,\s*(?>(' . self::RE_IDENTIFIER . ')\s*=\s*)?(' . self::RE_STRING . '|[^\'"),\s][^\'"),]*)#A')
+				) {
 					$value = substr($value, strlen($m[0]));
 					list(, $key, $val) = $m;
+					$val = rtrim($val);
 					if ($val[0] === "'" || $val[0] === '"') {
 						$val = substr($val, 1, -1);
 
@@ -175,7 +221,7 @@ final class AnnotationsParser
 				$res[$name][] = new $class(is_array($value) ? $value : array('value' => $value));
 
 			} else {
-				$res[$name][] = is_array($value) ? new ArrayObject($value, ArrayObject::ARRAY_AS_PROPS) : $value;
+				$res[$name][] = is_array($value) ? new \ArrayObject($value, \ArrayObject::ARRAY_AS_PROPS) : $value;
 			}
 		}
 
@@ -191,22 +237,20 @@ final class AnnotationsParser
 	 */
 	private static function parseScript($file)
 	{
-		if (!defined('T_NAMESPACE')) {
-			define('T_NAMESPACE', -1);
-			define('T_NS_SEPARATOR', -1);
-		}
+		$T_NAMESPACE = PHP_VERSION_ID < 50300 ? -1 : T_NAMESPACE;
+		$T_NS_SEPARATOR = PHP_VERSION_ID < 50300 ? -1 : T_NS_SEPARATOR;
 
 		$s = file_get_contents($file);
 
-		if (preg_match('#//nette'.'loader=(\S*)#', $s)) {
+		if (Strings::match($s, '#//nette'.'loader=(\S*)#')) {
 			return; // TODO: allways ignore?
 		}
 
 		$expected = $namespace = $class = $docComment = NULL;
 		$level = $classLevel = 0;
 
-		foreach (token_get_all($s) as $token)
-		{
+		foreach (token_get_all($s) as $token) {
+
 			if (is_array($token)) {
 				switch ($token[0]) {
 				case T_DOC_COMMENT:
@@ -216,7 +260,7 @@ final class AnnotationsParser
 					continue 2;
 
 				case T_STRING:
-				case T_NS_SEPARATOR:
+				case $T_NS_SEPARATOR:
 				case T_VARIABLE:
 					if ($expected) {
 						$name .= $token[1];
@@ -227,7 +271,7 @@ final class AnnotationsParser
 				case T_VAR:
 				case T_PUBLIC:
 				case T_PROTECTED:
-				case T_NAMESPACE:
+				case $T_NAMESPACE:
 				case T_CLASS:
 				case T_INTERFACE:
 					$expected = $token[0];
@@ -254,7 +298,9 @@ final class AnnotationsParser
 					$name = '';
 					// break intentionally omitted
 				case T_FUNCTION:
-					if ($token === '&') continue 2; // ignore
+					if ($token === '&') {
+						continue 2; // ignore
+					}
 				case T_VAR:
 				case T_PUBLIC:
 				case T_PROTECTED:
@@ -263,7 +309,7 @@ final class AnnotationsParser
 					}
 					break;
 
-				case T_NAMESPACE:
+				case $T_NAMESPACE:
 					$namespace = $name . '\\';
 				}
 
@@ -291,11 +337,21 @@ final class AnnotationsParser
 
 
 	/**
-	 * @return Cache
+	 * @return void
 	 */
-	protected static function getCache()
+	public static function setCacheStorage(Nette\Caching\IStorage $storage)
 	{
-		return Environment::getCache('Nette.Annotations');
+		self::$cacheStorage = $storage;
+	}
+
+
+
+	/**
+	 * @return Nette\Caching\IStorage
+	 */
+	public static function getCacheStorage()
+	{
+		return self::$cacheStorage;
 	}
 
 }

@@ -1,22 +1,25 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette;
 
 
 
 /**
  * Single line text input control.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
+ * @property-write $type
  */
 class TextInput extends TextBase
 {
@@ -33,32 +36,40 @@ class TextInput extends TextBase
 		$this->control->type = 'text';
 		$this->control->size = $cols;
 		$this->control->maxlength = $maxLength;
-		$this->filters[] = callback('String', 'trim');
-		$this->filters[] = callback($this, 'checkMaxLength');
+		$this->addFilter($this->sanitize);
 		$this->value = '';
 	}
 
 
 
 	/**
-	 * Filter: shortens value to control's max length.
+	 * Filter: removes unnecessary whitespace and shortens value to control's max length.
 	 * @return string
 	 */
-	public function checkMaxLength($value)
+	public function sanitize($value)
 	{
-		if ($this->control->maxlength && iconv_strlen($value, 'UTF-8') > $this->control->maxlength) {
-			$value = iconv_substr($value, 0, $this->control->maxlength, 'UTF-8');
+		if ($this->control->maxlength && Nette\Utils\Strings::length($value) > $this->control->maxlength) {
+			$value = Nette\Utils\Strings::substring($value, 0, $this->control->maxlength);
 		}
-		return $value;
+		return Nette\Utils\Strings::trim(strtr($value, "\r\n", '  '));
 	}
 
 
 
 	/**
-	 * Sets or unsets the password mode.
-	 * @param  bool
-	 * @return TextInput  provides a fluent interface
+	 * Changes control's type attribute.
+	 * @param  string
+	 * @return BaseControl  provides a fluent interface
 	 */
+	public function setType($type)
+	{
+		$this->control->type = $type;
+		return $this;
+	}
+
+
+
+	/** @deprecated */
 	public function setPasswordMode($mode = TRUE)
 	{
 		$this->control->type = $mode ? 'password' : 'text';
@@ -69,30 +80,25 @@ class TextInput extends TextBase
 
 	/**
 	 * Generates control's HTML element.
-	 * @return Html
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl()
 	{
 		$control = parent::getControl();
-		if ($this->control->type !== 'password') {
+		foreach ($this->getRules() as $rule) {
+			if ($rule->isNegative || $rule->type !== Nette\Forms\Rule::VALIDATOR) {
+
+			} elseif ($rule->operation === Nette\Forms\Form::RANGE && $control->type !== 'text') {
+				list($control->min, $control->max) = $rule->arg;
+
+			} elseif ($rule->operation === Nette\Forms\Form::PATTERN) {
+				$control->pattern = $rule->arg;
+			}
+		}
+		if ($control->type !== 'password') {
 			$control->value = $this->getValue() === '' ? $this->translate($this->emptyValue) : $this->value;
 		}
 		return $control;
 	}
-
-
-
-	public function notifyRule(Rule $rule)
-	{
-		if (is_string($rule->operation) && strcasecmp($rule->operation, ':length') === 0 && !$rule->isNegative) {
-			$this->control->maxlength = is_array($rule->arg) ? $rule->arg[1] : $rule->arg;
-
-		} elseif (is_string($rule->operation) && strcasecmp($rule->operation, ':maxLength') === 0 && !$rule->isNegative) {
-			$this->control->maxlength = $rule->arg;
-		}
-
-		parent::notifyRule($rule);
-	}
-
 
 }

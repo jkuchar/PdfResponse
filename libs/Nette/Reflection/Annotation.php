@@ -1,24 +1,26 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Reflection
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Reflection;
+
+use Nette;
 
 
 
 /**
  * Basic annotation implementation.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Reflection
+ * @author     David Grudl
  */
-class Annotation extends Object implements IAnnotation
+class Annotation extends Nette\Object implements IAnnotation
 {
 
 	public function __construct(array $values)
@@ -27,6 +29,7 @@ class Annotation extends Object implements IAnnotation
 			$this->$k = $v;
 		}
 	}
+
 
 
 	/**

@@ -1,89 +1,92 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms;
+
+use Nette;
 
 
 
 /**
  * Creates, validates and renders HTML forms.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
  *
- * @example    forms/basic-example.php  Form definition using fluent interfaces
- * @example    forms/manual-rendering.php  Manual form rendering and separated form and rules definition
- * @example    forms/localization.php  Localization (with Zend_Translate)
- * @example    forms/custom-rendering.php  Custom form rendering
- * @example    forms/custom-validator.php  How to use custom validator
- * @example    forms/naming-containers.php  How to use naming containers
- * @example    forms/CSRF-protection.php  How to use Cross-Site Request Forgery (CSRF) form protection
- * @example    forms/custom-encoding.php  How to change charset
- *
- * @property   string $action
+ * @property   mixed $action
  * @property   string $method
  * @property-read array $groups
+ * @property   Nette\Localization\ITranslator|NULL $translator
+ * @property-read bool $anchored
+ * @property-read ISubmitterControl|FALSE $submitted
+ * @property-read bool $success
  * @property-read array $httpData
- * @property   string $encoding
- * @property   ITranslator $translator
  * @property-read array $errors
- * @property-read Html $elementPrototype
+ * @property-read Nette\Utils\Html $elementPrototype
  * @property   IFormRenderer $renderer
- * @property-read boold $submitted
  */
-class Form extends FormContainer
+class Form extends Container
 {
-	/**#@+ operation name */
-	const EQUAL = ':equal';
-	const IS_IN = ':equal';
-	const FILLED = ':filled';
-	const VALID = ':valid';
+	/** validator */
+	const EQUAL = ':equal',
+		IS_IN = ':equal',
+		FILLED = ':filled',
+		VALID = ':valid';
+
+	// CSRF protection
+	const PROTECTION = 'Nette\Forms\Controls\HiddenField::validateEqual';
 
 	// button
 	const SUBMITTED = ':submitted';
 
 	// text
-	const MIN_LENGTH = ':minLength';
-	const MAX_LENGTH = ':maxLength';
-	const LENGTH = ':length';
-	const EMAIL = ':email';
-	const URL = ':url';
-	const REGEXP = ':regexp';
-	const INTEGER = ':integer';
-	const NUMERIC = ':integer';
-	const FLOAT = ':float';
-	const RANGE = ':range';
+	const MIN_LENGTH = ':minLength',
+		MAX_LENGTH = ':maxLength',
+		LENGTH = ':length',
+		EMAIL = ':email',
+		URL = ':url',
+		REGEXP = ':regexp',
+		PATTERN = ':pattern',
+		INTEGER = ':integer',
+		NUMERIC = ':integer',
+		FLOAT = ':float',
+		RANGE = ':range';
+
+	// multiselect
+	const COUNT = ':length';
 
 	// file upload
-	const MAX_FILE_SIZE = ':fileSize';
-	const MIME_TYPE = ':mimeType';
+	const MAX_FILE_SIZE = ':fileSize',
+		MIME_TYPE = ':mimeType',
+		IMAGE = ':image';
 
-	// special case
-	const SCRIPT = 'Nette\Forms\InstantClientScript::javascript';
-	/**#@-*/
+	/** method */
+	const GET = 'get',
+		POST = 'post';
 
-	/**#@+ method */
-	const GET = 'get';
-	const POST = 'post';
-	/**#@-*/
-
-	/** @ignore internal tracker ID */
+	/** @internal tracker ID */
 	const TRACKER_ID = '_form_';
 
-	/** @ignore internal protection token ID */
+	/** @internal protection token ID */
 	const PROTECTOR_ID = '_token_';
 
 	/** @var array of function(Form $sender); Occurs when the form is submitted and successfully validated */
+	public $onSuccess;
+
+	/** @var array of function(Form $sender); Occurs when the form is submitted and is not valid */
+	public $onError;
+
+	/** @var array of function(Form $sender); Occurs when the form is submitted */
 	public $onSubmit;
 
-	/** @var array of function(Form $sender); Occurs when the form is submitted and not validated */
+	/** @deprecated */
 	public $onInvalidSubmit;
 
 	/** @var mixed or NULL meaning: not detected yet */
@@ -98,17 +101,14 @@ class Form extends FormContainer
 	/** @var IFormRenderer */
 	private $renderer;
 
-	/** @var ITranslator */
+	/** @var Nette\Localization\ITranslator */
 	private $translator;
 
-	/** @var array of FormGroup */
+	/** @var ControlGroup[] */
 	private $groups = array();
 
 	/** @var array */
 	private $errors = array();
-
-	/** @var array */
-	private $encoding = 'UTF-8';
 
 
 
@@ -118,12 +118,14 @@ class Form extends FormContainer
 	 */
 	public function __construct($name = NULL)
 	{
-		$this->element = Html::el('form');
+		$this->element = Nette\Utils\Html::el('form');
 		$this->element->action = ''; // RFC 1808 -> empty uri means 'this'
 		$this->element->method = self::POST;
+		$this->element->id = $name === NULL ? NULL : 'frm-' . $name;
+
 		$this->monitor(__CLASS__);
 		if ($name !== NULL) {
-			$tracker = new HiddenField($name);
+			$tracker = new Controls\HiddenField($name);
 			$tracker->unmonitor(__CLASS__);
 			$this[self::TRACKER_ID] = $tracker;
 		}
@@ -135,13 +137,13 @@ class Form extends FormContainer
 	/**
 	 * This method will be called when the component (or component's parent)
 	 * becomes attached to a monitored object. Do not call this method yourself.
-	 * @param  IComponent
+	 * @param  Nette\ComponentModel\IComponent
 	 * @return void
 	 */
 	protected function attached($obj)
 	{
 		if ($obj instanceof self) {
-			throw new InvalidStateException('Nested forms are forbidden.');
+			throw new Nette\InvalidStateException('Nested forms are forbidden.');
 		}
 	}
 
@@ -190,7 +192,7 @@ class Form extends FormContainer
 	public function setMethod($method)
 	{
 		if ($this->httpData !== NULL) {
-			throw new InvalidStateException(__METHOD__ . '() must be called until the form is empty.');
+			throw new Nette\InvalidStateException(__METHOD__ . '() must be called until the form is empty.');
 		}
 		$this->element->method = strtolower($method);
 		return $this;
@@ -210,16 +212,6 @@ class Form extends FormContainer
 
 
 	/**
-	 * @deprecated
-	 */
-	public function addTracker()
-	{
-		throw new DeprecatedException(__METHOD__ . '() is deprecated; pass form name to the constructor.');
-	}
-
-
-
-	/**
 	 * Cross-Site Request Forgery (CSRF) form protection.
 	 * @param  string
 	 * @param  int
@@ -227,16 +219,16 @@ class Form extends FormContainer
 	 */
 	public function addProtection($message = NULL, $timeout = NULL)
 	{
-		$session = $this->getSession()->getNamespace('Nette.Forms.Form/CSRF');
+		$session = $this->getSession()->getSection('Nette.Forms.Form/CSRF');
 		$key = "key$timeout";
 		if (isset($session->$key)) {
 			$token = $session->$key;
 		} else {
-			$session->$key = $token = md5(uniqid('', TRUE));
+			$session->$key = $token = Nette\Utils\Strings::random();
 		}
 		$session->setExpiration($timeout, $key);
-		$this[self::PROTECTOR_ID] = new HiddenField($token);
-		$this[self::PROTECTOR_ID]->addRule(':equal', empty($message) ? 'Security token did not match. Possible CSRF attack.' : $message, $token);
+		$this[self::PROTECTOR_ID] = new Controls\HiddenField($token);
+		$this[self::PROTECTOR_ID]->addRule(self::PROTECTION, $message, $token);
 	}
 
 
@@ -245,11 +237,11 @@ class Form extends FormContainer
 	 * Adds fieldset group to the form.
 	 * @param  string  caption
 	 * @param  bool    set this group as current
-	 * @return FormGroup
+	 * @return ControlGroup
 	 */
 	public function addGroup($caption = NULL, $setAsCurrent = TRUE)
 	{
-		$group = new FormGroup;
+		$group = new ControlGroup;
 		$group->setOption('label', $caption);
 		$group->setOption('visual', TRUE);
 
@@ -276,16 +268,16 @@ class Form extends FormContainer
 		if (is_string($name) && isset($this->groups[$name])) {
 			$group = $this->groups[$name];
 
-		} elseif ($name instanceof FormGroup && in_array($name, $this->groups, TRUE)) {
+		} elseif ($name instanceof ControlGroup && in_array($name, $this->groups, TRUE)) {
 			$group = $name;
 			$name = array_search($group, $this->groups, TRUE);
 
 		} else {
-			throw new InvalidArgumentException("Group not found in form '$this->name'");
+			throw new Nette\InvalidArgumentException("Group not found in form '$this->name'");
 		}
 
 		foreach ($group->getControls() as $control) {
-			$this->removeComponent($control);
+			$control->getParent()->removeComponent($control);
 		}
 
 		unset($this->groups[$name]);
@@ -295,7 +287,7 @@ class Form extends FormContainer
 
 	/**
 	 * Returns all defined groups.
-	 * @return array of FormGroup
+	 * @return FormGroup[]
 	 */
 	public function getGroups()
 	{
@@ -307,38 +299,11 @@ class Form extends FormContainer
 	/**
 	 * Returns the specified group.
 	 * @param  string  name
-	 * @return FormGroup
+	 * @return ControlGroup
 	 */
 	public function getGroup($name)
 	{
 		return isset($this->groups[$name]) ? $this->groups[$name] : NULL;
-	}
-
-
-
-	/**
-	 * Set the encoding for the values.
-	 * @param  string
-	 * @return Form  provides a fluent interface
-	 */
-	public function setEncoding($value)
-	{
-		$this->encoding = empty($value) ? 'UTF-8' : strtoupper($value);
-		if ($this->encoding !== 'UTF-8' && !extension_loaded('mbstring')) {
-			throw new Exception("The PHP extension 'mbstring' is required for this encoding but is not loaded.");
-		}
-		return $this;
-	}
-
-
-
-	/**
-	 * Returns the encoding.
-	 * @return string
-	 */
-	final public function getEncoding()
-	{
-		return $this->encoding;
 	}
 
 
@@ -349,10 +314,9 @@ class Form extends FormContainer
 
 	/**
 	 * Sets translate adapter.
-	 * @param  ITranslator
 	 * @return Form  provides a fluent interface
 	 */
-	public function setTranslator(ITranslator $translator = NULL)
+	public function setTranslator(Nette\Localization\ITranslator $translator = NULL)
 	{
 		$this->translator = $translator;
 		return $this;
@@ -362,7 +326,7 @@ class Form extends FormContainer
 
 	/**
 	 * Returns translate adapter.
-	 * @return ITranslator|NULL
+	 * @return Nette\Localization\ITranslator|NULL
 	 */
 	final public function getTranslator()
 	{
@@ -392,9 +356,8 @@ class Form extends FormContainer
 	 */
 	final public function isSubmitted()
 	{
-		if ($this->submittedBy === NULL) {
-			$this->getHttpData();
-			$this->submittedBy = !empty($this->httpData);
+		if ($this->submittedBy === NULL && count($this->getControls())) {
+			$this->submittedBy = (bool) $this->getHttpData();
 		}
 		return $this->submittedBy;
 	}
@@ -402,8 +365,18 @@ class Form extends FormContainer
 
 
 	/**
+	 * Tells if the form was submitted and successfully validated.
+	 * @return bool
+	 */
+	final public function isSuccess()
+	{
+		return $this->isSubmitted() && $this->isValid();
+	}
+
+
+
+	/**
 	 * Sets the submittor control.
-	 * @param  ISubmitterControl
 	 * @return Form  provides a fluent interface
 	 */
 	public function setSubmittedBy(ISubmitterControl $by = NULL)
@@ -422,9 +395,9 @@ class Form extends FormContainer
 	{
 		if ($this->httpData === NULL) {
 			if (!$this->isAnchored()) {
-				throw new InvalidStateException('Form is not anchored and therefore can not determine whether it was submitted.');
+				throw new Nette\InvalidStateException('Form is not anchored and therefore can not determine whether it was submitted.');
 			}
-			$this->httpData = (array) $this->receiveHttpData();
+			$this->httpData = $this->receiveHttpData();
 		}
 		return $this->httpData;
 	}
@@ -443,17 +416,29 @@ class Form extends FormContainer
 		} elseif ($this->submittedBy instanceof ISubmitterControl) {
 			if (!$this->submittedBy->getValidationScope() || $this->isValid()) {
 				$this->submittedBy->click();
-				$this->onSubmit($this);
+				$valid = TRUE;
 			} else {
 				$this->submittedBy->onInvalidClick($this->submittedBy);
+			}
+		}
+
+		if (isset($valid) || $this->isValid()) {
+			$this->onSuccess($this);
+		} else {
+			$this->onError($this);
+			if ($this->onInvalidSubmit) {
+				trigger_error(__CLASS__ . '->onInvalidSubmit is deprecated; use onError instead.', E_USER_WARNING);
 				$this->onInvalidSubmit($this);
 			}
+		}
 
-		} elseif ($this->isValid()) {
+		if ($this->onSuccess) { // back compatibility
 			$this->onSubmit($this);
-
-		} else {
-			$this->onInvalidSubmit($this);
+		} elseif ($this->onSubmit) {
+			trigger_error(__CLASS__ . '->onSubmit changed its behavior; use onSuccess instead.', E_USER_WARNING);
+			if (isset($valid) || $this->isValid()) {
+				$this->onSubmit($this);
+			}
 		}
 	}
 
@@ -467,34 +452,22 @@ class Form extends FormContainer
 	{
 		$httpRequest = $this->getHttpRequest();
 		if (strcasecmp($this->getMethod(), $httpRequest->getMethod())) {
-			return;
+			return array();
 		}
 
-		$httpRequest->setEncoding($this->encoding);
 		if ($httpRequest->isMethod('post')) {
-			$data = ArrayTools::mergeTree($httpRequest->getPost(), $httpRequest->getFiles());
+			$data = Nette\Utils\Arrays::mergeTree($httpRequest->getPost(), $httpRequest->getFiles());
 		} else {
 			$data = $httpRequest->getQuery();
 		}
 
 		if ($tracker = $this->getComponent(self::TRACKER_ID, FALSE)) {
 			if (!isset($data[self::TRACKER_ID]) || $data[self::TRACKER_ID] !== $tracker->getValue()) {
-				return;
+				return array();
 			}
 		}
 
 		return $data;
-	}
-
-
-
-	/**
-	 * @deprecated
-	 */
-	public function processHttpRequest()
-	{
-		trigger_error(__METHOD__ . '() is deprecated; use fireEvents() instead.', E_USER_WARNING);
-		$this->fireEvents();
 	}
 
 
@@ -505,11 +478,11 @@ class Form extends FormContainer
 
 	/**
 	 * Returns the values submitted by the form.
-	 * @return array
+	 * @return Nette\ArrayHash|array
 	 */
-	public function getValues()
+	public function getValues($asArray = FALSE)
 	{
-		$values = parent::getValues();
+		$values = parent::getValues($asArray);
 		unset($values[self::TRACKER_ID], $values[self::PROTECTOR_ID]);
 		return $values;
 	}
@@ -573,7 +546,7 @@ class Form extends FormContainer
 
 	/**
 	 * Returns form's HTML element template.
-	 * @return Html
+	 * @return Nette\Utils\Html
 	 */
 	public function getElementPrototype()
 	{
@@ -584,7 +557,6 @@ class Form extends FormContainer
 
 	/**
 	 * Sets form renderer.
-	 * @param  IFormRenderer
 	 * @return Form  provides a fluent interface
 	 */
 	public function setRenderer(IFormRenderer $renderer)
@@ -597,12 +569,12 @@ class Form extends FormContainer
 
 	/**
 	 * Returns form renderer.
-	 * @return IFormRenderer|NULL
+	 * @return IFormRenderer
 	 */
 	final public function getRenderer()
 	{
 		if ($this->renderer === NULL) {
-			$this->renderer = new ConventionalRenderer;
+			$this->renderer = new Rendering\DefaultFormRenderer;
 		}
 		return $this->renderer;
 	}
@@ -617,13 +589,7 @@ class Form extends FormContainer
 	{
 		$args = func_get_args();
 		array_unshift($args, $this);
-		$s = call_user_func_array(array($this->getRenderer(), 'render'), $args);
-
-		if (strcmp($this->encoding, 'UTF-8')) {
-			echo mb_convert_encoding($s, 'HTML-ENTITIES', 'UTF-8');
-		} else {
-			echo $s;
-		}
+		echo call_user_func_array(array($this->getRenderer(), 'render'), $args);
 	}
 
 
@@ -636,17 +602,13 @@ class Form extends FormContainer
 	public function __toString()
 	{
 		try {
-			if (strcmp($this->encoding, 'UTF-8')) {
-				return mb_convert_encoding($this->getRenderer()->render($this), 'HTML-ENTITIES', 'UTF-8');
-			} else {
-				return $this->getRenderer()->render($this);
-			}
+			return $this->getRenderer()->render($this);
 
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			if (func_get_args() && func_get_arg(0)) {
 				throw $e;
 			} else {
-				Debug::toStringException($e);
+				trigger_error("Exception in " . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
 			}
 		}
 	}
@@ -658,21 +620,21 @@ class Form extends FormContainer
 
 
 	/**
-	 * @return IHttpRequest
+	 * @return Nette\Http\IRequest
 	 */
 	protected function getHttpRequest()
 	{
-		return class_exists('Environment') ? Environment::getHttpRequest() : new HttpRequest;
+		return Nette\Environment::getHttpRequest();
 	}
 
 
 
 	/**
-	 * @return Session
+	 * @return Nette\Http\Session
 	 */
 	protected function getSession()
 	{
-		return Environment::getSession();
+		return Nette\Environment::getSession();
 	}
 
 }

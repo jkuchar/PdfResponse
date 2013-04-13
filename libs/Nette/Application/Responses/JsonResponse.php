@@ -1,26 +1,31 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Application
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Application\Responses;
+
+use Nette;
 
 
 
 /**
- * JSON response used for AJAX requests.
+ * JSON response used mainly for AJAX requests.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Application
+ * @author     David Grudl
+ *
+ * @property-read array|\stdClass $payload
+ * @property-read string $contentType
  */
-class JsonResponse extends Object implements IPresenterResponse
+class JsonResponse extends Nette\Object implements Nette\Application\IResponse
 {
-	/** @var array|stdClass */
+	/** @var array|\stdClass */
 	private $payload;
 
 	/** @var string */
@@ -29,13 +34,13 @@ class JsonResponse extends Object implements IPresenterResponse
 
 
 	/**
-	 * @param  array|stdClass  payload
+	 * @param  array|\stdClass  payload
 	 * @param  string    MIME content type
 	 */
 	public function __construct($payload, $contentType = NULL)
 	{
-		if (!is_array($payload) && !($payload instanceof stdClass)) {
-			throw new InvalidArgumentException("Payload must be array or anonymous class, " . gettype($payload) . " given.");
+		if (!is_array($payload) && !is_object($payload)) {
+			throw new Nette\InvalidArgumentException("Payload must be array or object class, " . gettype($payload) . " given.");
 		}
 		$this->payload = $payload;
 		$this->contentType = $contentType ? $contentType : 'application/json';
@@ -44,7 +49,7 @@ class JsonResponse extends Object implements IPresenterResponse
 
 
 	/**
-	 * @return array|stdClass
+	 * @return array|\stdClass
 	 */
 	final public function getPayload()
 	{
@@ -54,14 +59,25 @@ class JsonResponse extends Object implements IPresenterResponse
 
 
 	/**
+	 * Returns the MIME content type of a downloaded file.
+	 * @return string
+	 */
+	final public function getContentType()
+	{
+		return $this->contentType;
+	}
+
+
+
+	/**
 	 * Sends response to output.
 	 * @return void
 	 */
-	public function send()
+	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse)
 	{
-		Environment::getHttpResponse()->setContentType($this->contentType);
-		Environment::getHttpResponse()->setExpiration(FALSE);
-		echo json_encode($this->payload);
+		$httpResponse->setContentType($this->contentType);
+		$httpResponse->setExpiration(FALSE);
+		echo Nette\Utils\Json::encode($this->payload);
 	}
 
 }

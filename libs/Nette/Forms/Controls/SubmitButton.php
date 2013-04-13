@@ -1,27 +1,29 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette;
 
 
 
 /**
  * Submittable button control.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
  *
- * @property   mixed $validationScope
  * @property-read bool $submittedBy
+ * @property   mixed $validationScope
  */
-class SubmitButton extends Button implements ISubmitterControl
+class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
 {
 	/** @var array of function(SubmitButton $sender); Occurs when the button is clicked and form is successfully validated */
 	public $onClick;
@@ -52,11 +54,8 @@ class SubmitButton extends Button implements ISubmitterControl
 	 */
 	public function setValue($value)
 	{
-		$this->value = is_scalar($value) && (bool) $value;
-		$form = $this->getForm();
-		if ($this->value || !is_object($form->isSubmitted())) {
-			$this->value = TRUE;
-			$form->setSubmittedBy($this);
+		if ($this->value = $value !== NULL) {
+			$this->getForm()->setSubmittedBy($this);
 		}
 		return $this;
 	}
@@ -83,6 +82,7 @@ class SubmitButton extends Button implements ISubmitterControl
 	{
 		// TODO: implement groups
 		$this->validationScope = (bool) $scope;
+		$this->control->formnovalidate = !$this->validationScope;
 		return $this;
 	}
 
@@ -112,10 +112,9 @@ class SubmitButton extends Button implements ISubmitterControl
 
 	/**
 	 * Submitted validator: has been button pressed?
-	 * @param  ISubmitterControl
 	 * @return bool
 	 */
-	public static function validateSubmitted(ISubmitterControl $control)
+	public static function validateSubmitted(Nette\Forms\ISubmitterControl $control)
 	{
 		return $control->isSubmittedBy();
 	}

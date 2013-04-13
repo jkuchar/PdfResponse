@@ -1,72 +1,70 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Caching
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Caching;
+
+use Nette;
 
 
 
 /**
  * Implements the cache for a application.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Caching
+ * @author     David Grudl
+ *
+ * @property-read IStorage $storage
+ * @property-read string $namespace
  */
-class Cache extends Object implements ArrayAccess
+class Cache extends Nette\Object implements \ArrayAccess
 {
-	/**#@+ dependency */
-	const PRIORITY = 'priority';
-	const EXPIRE = 'expire';
-	const SLIDING = 'sliding';
-	const TAGS = 'tags';
-	const FILES = 'files';
-	const ITEMS = 'items';
-	const CONSTS = 'consts';
-	const CALLBACKS = 'callbacks';
-	const ALL = 'all';
-	/**#@-*/
+	/** dependency */
+	const PRIORITY = 'priority',
+		EXPIRATION = 'expire',
+		EXPIRE = 'expire',
+		SLIDING = 'sliding',
+		TAGS = 'tags',
+		FILES = 'files',
+		ITEMS = 'items',
+		CONSTS = 'consts',
+		CALLBACKS = 'callbacks',
+		ALL = 'all';
 
-	/** @deprecated */
-	const REFRESH = 'sliding';
-
-	/** @ignore internal */
+	/** @internal */
 	const NAMESPACE_SEPARATOR = "\x00";
 
-	/** @var ICacheStorage */
+	/** @var IStorage */
 	private $storage;
 
 	/** @var string */
 	private $namespace;
 
-	/** @var string  last query cache */
+	/** @var string  last query cache used by offsetGet() */
 	private $key;
 
-	/** @var mixed  last query cache */
+	/** @var mixed  last query cache used by offsetGet()  */
 	private $data;
 
 
 
-	public function __construct(ICacheStorage $storage, $namespace = NULL)
+	public function __construct(IStorage $storage, $namespace = NULL)
 	{
 		$this->storage = $storage;
-		$this->namespace = (string) $namespace;
-
-		if (strpos($this->namespace, self::NAMESPACE_SEPARATOR) !== FALSE) {
-			throw new InvalidArgumentException("Namespace name contains forbidden character.");
-		}
+		$this->namespace = $namespace . self::NAMESPACE_SEPARATOR;
 	}
 
 
 
 	/**
 	 * Returns cache storage.
-	 * @return ICacheStorage
+	 * @return IStorage
 	 */
 	public function getStorage()
 	{
@@ -81,18 +79,37 @@ class Cache extends Object implements ArrayAccess
 	 */
 	public function getNamespace()
 	{
-		return $this->namespace;
+		return (string) substr($this->namespace, 0, -1);
 	}
 
 
 
 	/**
-	 * Discards the internal cache.
-	 * @return void
+	 * Returns new nested cache object.
+	 * @param  string
+	 * @return Cache
 	 */
-	public function release()
+	public function derive($namespace)
 	{
-		$this->key = $this->data = NULL;
+		$derived = new static($this->storage, $this->namespace . $namespace);
+		return $derived;
+	}
+
+
+
+	/**
+	 * Reads the specified item from the cache or generate it.
+	 * @param  mixed key
+	 * @param  callable
+	 * @return mixed|NULL
+	 */
+	public function load($key, $fallback = NULL)
+	{
+		$data = $this->storage->read($this->generateKey($key));
+		if ($data === NULL && $fallback) {
+			return $this->save($key, new Nette\Callback($fallback));
+		}
+		return $data;
 	}
 
 
@@ -101,67 +118,89 @@ class Cache extends Object implements ArrayAccess
 	 * Writes item into the cache.
 	 * Dependencies are:
 	 * - Cache::PRIORITY => (int) priority
-	 * - Cache::EXPIRE => (timestamp) expiration
+	 * - Cache::EXPIRATION => (timestamp) expiration
 	 * - Cache::SLIDING => (bool) use sliding expiration?
 	 * - Cache::TAGS => (array) tags
 	 * - Cache::FILES => (array|string) file names
 	 * - Cache::ITEMS => (array|string) cache items
 	 * - Cache::CONSTS => (array|string) cache items
 	 *
-	 * @param  string key
+	 * @param  mixed  key
 	 * @param  mixed  value
 	 * @param  array  dependencies
 	 * @return mixed  value itself
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
-	public function save($key, $data, array $dp = NULL)
+	public function save($key, $data, array $dependencies = NULL)
 	{
-		if (!is_string($key) && !is_int($key)) {
-			throw new InvalidArgumentException("Cache key name must be string or integer, " . gettype($key) ." given.");
+		$this->release();
+		$key = $this->generateKey($key);
+
+		if ($data instanceof Nette\Callback || $data instanceof \Closure) {
+			$this->storage->lock($key);
+			$data = Nette\Callback::create($data)->invokeArgs(array(&$dependencies));
+		}
+
+		if ($data === NULL) {
+			$this->storage->remove($key);
+		} else {
+			$this->storage->write($key, $data, $this->completeDependencies($dependencies, $data));
+			return $data;
+		}
+	}
+
+
+
+	private function completeDependencies($dp, $data)
+	{
+		if (is_object($data)) {
+			$dp[self::CALLBACKS][] = array(array(__CLASS__, 'checkSerializationVersion'), get_class($data),
+				Nette\Reflection\ClassType::from($data)->getAnnotation('serializationVersion'));
 		}
 
 		// convert expire into relative amount of seconds
-		if (!empty($dp[Cache::EXPIRE])) {
-			$dp[Cache::EXPIRE] = Tools::createDateTime($dp[Cache::EXPIRE])->format('U') - time();
+		if (isset($dp[Cache::EXPIRATION])) {
+			$dp[Cache::EXPIRATION] = Nette\DateTime::from($dp[Cache::EXPIRATION])->format('U') - time();
 		}
 
 		// convert FILES into CALLBACKS
 		if (isset($dp[self::FILES])) {
 			//clearstatcache();
-			foreach ((array) $dp[self::FILES] as $item) {
-				$dp[self::CALLBACKS][] = array(array(__CLASS__, 'checkFile'), $item, @filemtime($item)); // intentionally @
+			foreach (array_unique((array) $dp[self::FILES]) as $item) {
+				$dp[self::CALLBACKS][] = array(array(__CLASS__, 'checkFile'), $item, @filemtime($item)); // @ - stat may fail
 			}
 			unset($dp[self::FILES]);
 		}
 
 		// add namespaces to items
 		if (isset($dp[self::ITEMS])) {
-			$dp[self::ITEMS] = (array) $dp[self::ITEMS];
-			foreach ($dp[self::ITEMS] as $k => $item) {
-				$dp[self::ITEMS][$k] = $this->namespace . self::NAMESPACE_SEPARATOR . $item;
-			}
+			$dp[self::ITEMS] = array_unique(array_map(array($this, 'generateKey'), (array) $dp[self::ITEMS]));
 		}
 
 		// convert CONSTS into CALLBACKS
 		if (isset($dp[self::CONSTS])) {
-			foreach ((array) $dp[self::CONSTS] as $item) {
+			foreach (array_unique((array) $dp[self::CONSTS]) as $item) {
 				$dp[self::CALLBACKS][] = array(array(__CLASS__, 'checkConst'), $item, constant($item));
 			}
 			unset($dp[self::CONSTS]);
 		}
 
-		if (is_object($data)) {
-			$dp[self::CALLBACKS][] = array(array(__CLASS__, 'checkSerializationVersion'), get_class($data),
-				ClassReflection::from($data)->getAnnotation('serializationVersion'));
+		if (!is_array($dp)) {
+			$dp = array();
 		}
+		return $dp;
+	}
 
-		$this->key = NULL;
-		$this->storage->write(
-			$this->namespace . self::NAMESPACE_SEPARATOR . $key,
-			$data,
-			(array) $dp
-		);
-		return $data;
+
+
+	/**
+	 * Removes item from the cache.
+	 * @param  mixed  key
+	 * @return void
+	 */
+	public function remove($key)
+	{
+		$this->save($key, NULL);
 	}
 
 
@@ -172,62 +211,113 @@ class Cache extends Object implements ArrayAccess
 	 * - Cache::PRIORITY => (int) priority
 	 * - Cache::TAGS => (array) tags
 	 * - Cache::ALL => TRUE
-	 *
-	 * @param  array
 	 * @return void
 	 */
-	public function clean(array $conds = NULL)
+	public function clean(array $conditions = NULL)
 	{
-		$this->storage->clean((array) $conds);
+		$this->release();
+		$this->storage->clean((array) $conditions);
 	}
 
 
 
-	/********************* interface \ArrayAccess ****************d*g**/
+	/**
+	 * Caches results of function/method calls.
+	 * @param  mixed
+	 * @return mixed
+	 */
+	public function call($function)
+	{
+		$key = func_get_args();
+		return $this->load($key, function() use ($function, $key) {
+			array_shift($key);
+			return Nette\Callback::create($function)->invokeArgs($key);
+		});
+	}
+
+
+
+	/**
+	 * Caches results of function/method calls.
+	 * @param  mixed
+	 * @param  array  dependencies
+	 * @return Closure
+	 */
+	public function wrap($function, array $dependencies = NULL)
+	{
+		$cache = $this;
+		return function() use ($cache, $function, $dependencies) {
+			$key = array($function, func_get_args());
+			$data = $cache->load($key);
+			if ($data === NULL) {
+				$data = $cache->save($key, Nette\Callback::create($function)->invokeArgs($key[1]), $dependencies);
+			}
+			return $data;
+		};
+	}
+
+
+
+	/**
+	 * Starts the output cache.
+	 * @param  mixed  key
+	 * @return OutputHelper|NULL
+	 */
+	public function start($key)
+	{
+		$data = $this->load($key);
+		if ($data === NULL) {
+			return new OutputHelper($this, $key);
+		}
+		echo $data;
+	}
+
+
+
+	/**
+	 * Generates internal cache key.
+	 *
+	 * @param  string
+	 * @return string
+	 */
+	protected function generateKey($key)
+	{
+		return $this->namespace . md5(is_scalar($key) ? $key : serialize($key));
+	}
+
+
+
+	/********************* interface ArrayAccess ****************d*g**/
 
 
 
 	/**
 	 * Inserts (replaces) item into the cache (\ArrayAccess implementation).
-	 * @param  string key
+	 * @param  mixed key
 	 * @param  mixed
 	 * @return void
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetSet($key, $data)
 	{
-		if (!is_string($key) && !is_int($key)) { // prevents NULL
-			throw new InvalidArgumentException("Cache key name must be string or integer, " . gettype($key) ." given.");
-		}
-
-		$this->key = $this->data = NULL;
-		if ($data === NULL) {
-			$this->storage->remove($this->namespace . self::NAMESPACE_SEPARATOR . $key);
-		} else {
-			$this->storage->write($this->namespace . self::NAMESPACE_SEPARATOR . $key, $data, array());
-		}
+		$this->save($key, $data);
 	}
 
 
 
 	/**
 	 * Retrieves the specified item from the cache or NULL if the key is not found (\ArrayAccess implementation).
-	 * @param  string key
+	 * @param  mixed key
 	 * @return mixed|NULL
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetGet($key)
 	{
-		if (!is_string($key) && !is_int($key)) {
-			throw new InvalidArgumentException("Cache key name must be string or integer, " . gettype($key) ." given.");
+		$key = is_scalar($key) ? (string) $key : serialize($key);
+		if ($this->key !== $key) {
+			$this->key = $key;
+			$this->data = $this->load($key);
 		}
-
-		$key = (string) $key;
-		if ($this->key === $key) {
-			return $this->data;
-		}
-		$this->key = $key;
-		$this->data = $this->storage->read($this->namespace . self::NAMESPACE_SEPARATOR . $key);
 		return $this->data;
 	}
 
@@ -235,37 +325,38 @@ class Cache extends Object implements ArrayAccess
 
 	/**
 	 * Exists item in cache? (\ArrayAccess implementation).
-	 * @param  string key
+	 * @param  mixed key
 	 * @return bool
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetExists($key)
 	{
-		if (!is_string($key) && !is_int($key)) {
-			throw new InvalidArgumentException("Cache key name must be string or integer, " . gettype($key) ." given.");
-		}
-
-		$this->key = (string) $key;
-		$this->data = $this->storage->read($this->namespace . self::NAMESPACE_SEPARATOR . $key);
-		return $this->data !== NULL;
+		$this->release();
+		return $this->offsetGet($key) !== NULL;
 	}
 
 
 
 	/**
 	 * Removes the specified item from the cache.
-	 * @param  string key
+	 * @param  mixed key
 	 * @return void
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetUnset($key)
 	{
-		if (!is_string($key) && !is_int($key)) {
-			throw new InvalidArgumentException("Cache key name must be string or integer, " . gettype($key) ." given.");
-		}
+		$this->save($key, NULL);
+	}
 
+
+
+	/**
+	 * Discards the internal cache used by ArrayAccess.
+	 * @return void
+	 */
+	public function release()
+	{
 		$this->key = $this->data = NULL;
-		$this->storage->remove($this->namespace . self::NAMESPACE_SEPARATOR . $key);
 	}
 
 
@@ -313,7 +404,7 @@ class Cache extends Object implements ArrayAccess
 	 */
 	private static function checkFile($file, $time)
 	{
-		return @filemtime($file) == $time; // intentionally @
+		return @filemtime($file) == $time; // @ - stat may fail
 	}
 
 
@@ -326,7 +417,7 @@ class Cache extends Object implements ArrayAccess
 	 */
 	private static function checkSerializationVersion($class, $value)
 	{
-		return ClassReflection::from($class)->getAnnotation('serializationVersion') === $value;
+		return Nette\Reflection\ClassType::from($class)->getAnnotation('serializationVersion') === $value;
 	}
 
 }

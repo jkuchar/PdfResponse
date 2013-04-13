@@ -1,33 +1,48 @@
 <?php
 
 /**
- * Nette Framework
+ * This file is part of the Nette Framework (http://nette.org)
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @license    http://nettephp.com/license  Nette license
- * @link       http://nettephp.com
- * @category   Nette
- * @package    Nette\Forms
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ *
+ * For the full copyright and license information, please view
+ * the file license.txt that was distributed with this source code.
  */
+
+namespace Nette\Forms;
+
+use Nette;
 
 
 
 /**
  * List of validation & condition rules.
  *
- * @copyright  Copyright (c) 2004, 2010 David Grudl
- * @package    Nette\Forms
+ * @author     David Grudl
  */
-final class Rules extends Object implements IteratorAggregate
+final class Rules extends Nette\Object implements \IteratorAggregate
 {
-	/** @ignore internal */
+	/** @internal */
 	const VALIDATE_PREFIX = 'validate';
 
 	/** @var array */
 	public static $defaultMessages = array(
+		Form::PROTECTION => 'Please submit this form again (security token has expired).',
+		Form::EQUAL => 'Please enter %s.',
+		Form::FILLED => 'Please complete mandatory field.',
+		Form::MIN_LENGTH => 'Please enter a value of at least %d characters.',
+		Form::MAX_LENGTH => 'Please enter a value no longer than %d characters.',
+		Form::LENGTH => 'Please enter a value between %d and %d characters long.',
+		Form::EMAIL => 'Please enter a valid email address.',
+		Form::URL => 'Please enter a valid URL.',
+		Form::INTEGER => 'Please enter a numeric value.',
+		Form::FLOAT => 'Please enter a numeric value.',
+		Form::RANGE => 'Please enter a value between %d and %d.',
+		Form::MAX_FILE_SIZE => 'The size of the uploaded file can be up to %d bytes.',
+		Form::IMAGE => 'The uploaded file must be image in format JPEG, GIF or PNG.',
 	);
 
-	/** @var array of Rule */
+	/** @var Rule[] */
 	private $rules = array();
 
 	/** @var Rules */
@@ -36,12 +51,12 @@ final class Rules extends Object implements IteratorAggregate
 	/** @var array */
 	private $toggles = array();
 
-	/** @var IFormControl */
+	/** @var IControl */
 	private $control;
 
 
 
-	public function __construct(IFormControl $control)
+	public function __construct(IControl $control)
 	{
 		$this->control = $control;
 	}
@@ -63,15 +78,10 @@ final class Rules extends Object implements IteratorAggregate
 		$this->adjustOperation($rule);
 		$rule->arg = $arg;
 		$rule->type = Rule::VALIDATOR;
-		if ($message === NULL && isset(self::$defaultMessages[$rule->operation])) {
-			$rule->message = self::$defaultMessages[$rule->operation];
+		if ($message === NULL && is_string($rule->operation) && isset(static::$defaultMessages[$rule->operation])) {
+			$rule->message = static::$defaultMessages[$rule->operation];
 		} else {
 			$rule->message = $message;
-		}
-
-		if ($this->parent === NULL) {
-			// notify only direct rules
-			$this->control->notifyRule($rule);
 		}
 		$this->rules[] = $rule;
 		return $this;
@@ -94,12 +104,12 @@ final class Rules extends Object implements IteratorAggregate
 
 	/**
 	 * Adds a validation condition on specified control a returns new branch.
-	 * @param  IFormControl form control
+	 * @param  IControl form control
 	 * @param  mixed      condition type
 	 * @param  mixed      optional condition arguments
 	 * @return Rules      new branch
 	 */
-	public function addConditionOn(IFormControl $control, $operation, $arg = NULL)
+	public function addConditionOn(IControl $control, $operation, $arg = NULL)
 	{
 		$rule = new Rule;
 		$rule->control = $control;
@@ -107,7 +117,7 @@ final class Rules extends Object implements IteratorAggregate
 		$this->adjustOperation($rule);
 		$rule->arg = $arg;
 		$rule->type = Rule::CONDITION;
-		$rule->subRules = new self($this->control);
+		$rule->subRules = new static($this->control);
 		$rule->subRules->parent = $this;
 
 		$this->rules[] = $rule;
@@ -124,7 +134,7 @@ final class Rules extends Object implements IteratorAggregate
 	{
 		$rule = clone end($this->parent->rules);
 		$rule->isNegative = !$rule->isNegative;
-		$rule->subRules = new self($this->parent->control);
+		$rule->subRules = new static($this->parent->control);
 		$rule->subRules->parent = $this->parent;
 		$this->parent->rules[] = $rule;
 		return $rule->subRules;
@@ -164,40 +174,37 @@ final class Rules extends Object implements IteratorAggregate
 	 */
 	public function validate($onlyCheck = FALSE)
 	{
-		$valid = TRUE;
-		foreach ($this->rules as $rule)
-		{
-			if ($rule->control->isDisabled()) continue;
+		foreach ($this->rules as $rule) {
+			if ($rule->control->isDisabled()) {
+				continue;
+			}
 
 			$success = ($rule->isNegative xor $this->getCallback($rule)->invoke($rule->control, $rule->arg));
 
 			if ($rule->type === Rule::CONDITION && $success) {
-				$success = $rule->subRules->validate($onlyCheck);
-				$valid = $valid && $success;
-
-			} elseif ($rule->type === Rule::VALIDATOR && !$success) {
-				if ($onlyCheck) {
+				if (!$rule->subRules->validate($onlyCheck)) {
 					return FALSE;
 				}
-				$rule->control->addError(vsprintf($rule->control->translate($rule->message, is_int($rule->arg) ? $rule->arg : NULL), (array) $rule->arg));
-				$valid = FALSE;
-				if ($rule->breakOnFailure) {
-					break;
+
+			} elseif ($rule->type === Rule::VALIDATOR && !$success) {
+				if (!$onlyCheck) {
+					$rule->control->addError(static::formatMessage($rule, TRUE));
 				}
+				return FALSE;
 			}
 		}
-		return $valid;
+		return TRUE;
 	}
 
 
 
 	/**
 	 * Iterates over ruleset.
-	 * @return ArrayIterator
+	 * @return \ArrayIterator
 	 */
 	final public function getIterator()
 	{
-		return new ArrayIterator($this->rules);
+		return new \ArrayIterator($this->rules);
 	}
 
 
@@ -226,7 +233,7 @@ final class Rules extends Object implements IteratorAggregate
 
 		if (!$this->getCallback($rule)->isCallable()) {
 			$operation = is_scalar($rule->operation) ? " '$rule->operation'" : '';
-			throw new InvalidArgumentException("Unknown operation$operation for control '{$rule->control->name}'.");
+			throw new Nette\InvalidArgumentException("Unknown operation$operation for control '{$rule->control->name}'.");
 		}
 	}
 
@@ -236,10 +243,33 @@ final class Rules extends Object implements IteratorAggregate
 	{
 		$op = $rule->operation;
 		if (is_string($op) && strncmp($op, ':', 1) === 0) {
-			return callback(get_class($rule->control), self::VALIDATE_PREFIX . ltrim($op, ':'));
+			return new Nette\Callback(get_class($rule->control), self::VALIDATE_PREFIX . ltrim($op, ':'));
 		} else {
-			return callback($op);
+			return new Nette\Callback($op);
 		}
+	}
+
+
+
+	public static function formatMessage($rule, $withValue)
+	{
+		$message = $rule->message;
+		if ($message instanceof Nette\Utils\Html) {
+			return $message;
+		}
+		if (!isset($message)) { // report missing message by notice
+			$message = static::$defaultMessages[$rule->operation];
+		}
+		if ($translator = $rule->control->getForm()->getTranslator()) {
+			$message = $translator->translate($message, is_int($rule->arg) ? $rule->arg : NULL);
+		}
+		$message = vsprintf(preg_replace('#%(name|label|value)#', '%$0', $message), (array) $rule->arg);
+		$message = str_replace('%name', $rule->control->getName(), $message);
+		$message = str_replace('%label', $rule->control->translate($rule->control->caption), $message);
+		if ($withValue && strpos($message, '%value') !== FALSE) {
+			$message = str_replace('%value', $rule->control->getValue(), $message);
+		}
+		return $message;
 	}
 
 }
