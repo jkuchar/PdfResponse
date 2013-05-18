@@ -12,18 +12,12 @@
  * @link       http://addons.nettephp.com/cs/pdfresponse
  */
 
+use Nette\Utils\Strings;
 
 /**
  * @property-read mPDFExtended $mPDF
  */
-class PdfResponse extends Object implements IPresenterResponse {
-	
-	/**
-	 * path to mPDF.php
-	 * @var string
-	 */
-	public static $mPDFPath = "%libsDir%/PdfResponse/mpdf/mpdf.php";
-	
+class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 	
 	/**
 	 * Source data
@@ -227,7 +221,7 @@ class PdfResponse extends Object implements IPresenterResponse {
 	function getMargins() {
 		$margins = explode(",", $this->pageMargins);
 		if(count($margins) !== 6) {
-			throw new InvalidStateException("You must specify all margins! For example: 16,15,16,15,9,9");
+			throw new Nette\InvalidStateException("You must specify all margins! For example: 16,15,16,15,9,9");
 		}
 
 		$dictionary = array(
@@ -243,7 +237,7 @@ class PdfResponse extends Object implements IPresenterResponse {
 		foreach($margins AS $key => $val) {
 			$val = (int)$val;
 			if($val < 0) {
-				throw new InvalidArgumentException("Margin must not be negative number!");
+				throw new Nette\InvalidArgumentException("Margin must not be negative number!");
 			}
 			$marginsOut[$dictionary[$key]] = $val;
 		}
@@ -264,7 +258,7 @@ class PdfResponse extends Object implements IPresenterResponse {
 	/**
 	 * Getts source document html
 	 * @return string
-	 * @throws InvalidStateException
+	 * @throws Nette\InvalidStateException
 	 */
 	public function getSource() {
 		$source = $this->getRawSource();
@@ -275,7 +269,7 @@ class PdfResponse extends Object implements IPresenterResponse {
 		};
 
 		// Nette template given
-		if ($source instanceof ITemplate) {
+		if ($source instanceof Nette\Templating\ITemplate) {
 			$source->pdfResponse = $this;
 			$source->mPDF = $this->getMPDF();
 			return $source->__toString();
@@ -283,14 +277,14 @@ class PdfResponse extends Object implements IPresenterResponse {
 		};
 
 		// Other case - not supported
-		throw new InvalidStateException("Source is not supported! (type: ".
+		throw new Nette\InvalidStateException("Source is not supported! (type: ".
 			(is_object($source) ? ("object of class " . get_class($source)) : gettype($source)).
 		")");
 	}
 
 	public function getRawSource() {
 		if(!$this->source) {
-			throw new InvalidStateException("Source is not defined!");
+			throw new Nette\InvalidStateException("Source is not defined!");
 		}
 		
 		return $this->source;
@@ -302,7 +296,7 @@ class PdfResponse extends Object implements IPresenterResponse {
 	 * Sends response to output.
 	 * @return void
 	 */
-	public function send() {
+	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse) {
 		// Throws exception if sources can not be processed
 		$html = $this->getSource();
 		
@@ -381,7 +375,7 @@ class PdfResponse extends Object implements IPresenterResponse {
 		$this->onBeforeComplete($mpdf);
 
 		if(!$this->outputName) {
-			$this->outputName = String::webalize($this->documentTitle).".pdf";
+			$this->outputName = Strings::webalize($this->documentTitle).".pdf";
 		}
 
 		$mpdf->Output($this->outputName,$this->outputDestination);
@@ -394,14 +388,14 @@ class PdfResponse extends Object implements IPresenterResponse {
 	 */
 	public function getMPDF() {
 		if(!$this->mPDF instanceof mPDF) {
-			if($this->createMPDF instanceof Callback and $this->createMPDF->isCallable()) {
+			if($this->createMPDF instanceof Nette\Callback && $this->createMPDF->isCallable()) {
 				$mpdf = $this->createMPDF->invoke($this);
 				if(!($mpdf instanceof mPDF)) {
-					throw new InvalidStateException("Callback function createMPDF must return mPDF object!");
+					throw new Nette\InvalidStateException("Callback function createMPDF must return mPDF object!");
 				}
 				$this->mPDF = $mpdf;
 			}else
-				throw new InvalidStateException("Callback createMPDF is not callable or is not instance of Nette\Callback!");
+				throw new Nette\InvalidStateException("Callback createMPDF is not callable or is not instance of Nette\Callback!");
 		}
 		return $this->mPDF;
 	}
@@ -414,13 +408,6 @@ class PdfResponse extends Object implements IPresenterResponse {
 	 * @return mPDFExtended
 	 */
 	public function createMPDF() {
-		/*if(!self::$mPDFPath) {
-			self::$mPDFPath = dirname(__FILE__)."/mpdf/mpdf.php";
-		}*/
-		$mpdfPath = Environment::expand(self::$mPDFPath);
-		define('_MPDF_PATH',dirname($mpdfPath)."/");
-		require($mpdfPath);
-
 		$margins = $this->getMargins();
 
 		//  [ float $margin_header , float $margin_footer [, string $orientation ]]]]]])
