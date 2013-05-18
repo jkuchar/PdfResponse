@@ -9,9 +9,7 @@
 		}
 	],
 	"autoload": {
-		"psr-0": {
-			"PdfResponse": ""
-		}
+		"classmap": ["/"]
 	},
 	"require": {
 		"php": ">= 5.3.0",
