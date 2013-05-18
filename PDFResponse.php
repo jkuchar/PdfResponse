@@ -12,6 +12,8 @@
  * @link       http://addons.nettephp.com/cs/pdfresponse
  */
 
+namespace PdfResponse;
+
 use Nette\Utils\Strings;
 
 /**

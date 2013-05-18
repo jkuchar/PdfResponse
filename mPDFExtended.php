@@ -12,6 +12,7 @@
  * @link       http://addons.nettephp.com/cs/pdfresponse
  */
 
+namespace PdfResponse;
 
 /**
  * Extended version of mPDF
