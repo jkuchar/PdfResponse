@@ -15,11 +15,15 @@
 namespace PdfResponse;
 
 use Nette\Utils\Strings;
+use Nette\Object;
+use Nette\Http\IRequest;
+use Nette\Http\IResponse;
+use Nette\Callback;
 
 /**
  * @property-read mPDFExtended $mPDF
  */
-class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
+class PdfResponse extends Object implements \Nette\Application\IResponse {
 	
 	/**
 	 * Source data
@@ -223,7 +227,7 @@ class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 	function getMargins() {
 		$margins = explode(",", $this->pageMargins);
 		if(count($margins) !== 6) {
-			throw new Nette\InvalidStateException("You must specify all margins! For example: 16,15,16,15,9,9");
+			throw new \Nette\InvalidStateException("You must specify all margins! For example: 16,15,16,15,9,9");
 		}
 
 		$dictionary = array(
@@ -239,7 +243,7 @@ class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 		foreach($margins AS $key => $val) {
 			$val = (int)$val;
 			if($val < 0) {
-				throw new Nette\InvalidArgumentException("Margin must not be negative number!");
+				throw new \Nette\InvalidArgumentException("Margin must not be negative number!");
 			}
 			$marginsOut[$dictionary[$key]] = $val;
 		}
@@ -260,7 +264,7 @@ class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 	/**
 	 * Getts source document html
 	 * @return string
-	 * @throws Nette\InvalidStateException
+	 * @throws \Nette\InvalidStateException
 	 */
 	public function getSource() {
 		$source = $this->getRawSource();
@@ -271,7 +275,7 @@ class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 		};
 
 		// Nette template given
-		if ($source instanceof Nette\Templating\ITemplate) {
+		if ($source instanceof \Nette\Templating\ITemplate) {
 			$source->pdfResponse = $this;
 			$source->mPDF = $this->getMPDF();
 			return $source->__toString();
@@ -279,14 +283,14 @@ class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 		};
 
 		// Other case - not supported
-		throw new Nette\InvalidStateException("Source is not supported! (type: ".
+		throw new \Nette\InvalidStateException("Source is not supported! (type: ".
 			(is_object($source) ? ("object of class " . get_class($source)) : gettype($source)).
 		")");
 	}
 
 	public function getRawSource() {
 		if(!$this->source) {
-			throw new Nette\InvalidStateException("Source is not defined!");
+			throw new \Nette\InvalidStateException("Source is not defined!");
 		}
 		
 		return $this->source;
@@ -298,7 +302,7 @@ class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 	 * Sends response to output.
 	 * @return void
 	 */
-	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse) {
+	public function send(IRequest $httpRequest, IResponse $httpResponse) {
 		// Throws exception if sources can not be processed
 		$html = $this->getSource();
 		
@@ -334,9 +338,9 @@ class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 		}
 
 
-		if(class_exists("simple_html_dom",true)) {
+		if(class_exists('\\simple_html_dom',true)) {
 			// Support for base64 encoded images - workaround
-			$parsedHtml = new simple_html_dom($html);
+			$parsedHtml = new \simple_html_dom($html);
 			$i = 1000;
 			foreach($parsedHtml->find("img") AS $element) {
 				$boundary1 = "data:";
@@ -390,14 +394,14 @@ class PdfResponse extends Nette\Object implements Nette\Application\IResponse {
 	 */
 	public function getMPDF() {
 		if(!$this->mPDF instanceof mPDF) {
-			if($this->createMPDF instanceof Nette\Callback && $this->createMPDF->isCallable()) {
+			if($this->createMPDF instanceof Callback && $this->createMPDF->isCallable()) {
 				$mpdf = $this->createMPDF->invoke($this);
-				if(!($mpdf instanceof mPDF)) {
-					throw new Nette\InvalidStateException("Callback function createMPDF must return mPDF object!");
+				if(!($mpdf instanceof \mPDF)) {
+					throw new \Nette\InvalidStateException("Callback function createMPDF must return mPDF object!");
 				}
 				$this->mPDF = $mpdf;
 			}else
-				throw new Nette\InvalidStateException("Callback createMPDF is not callable or is not instance of Nette\Callback!");
+				throw new \Nette\InvalidStateException("Callback createMPDF is not callable or is not instance of Nette\Callback!");
 		}
 		return $this->mPDF;
 	}

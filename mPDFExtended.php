@@ -19,7 +19,7 @@ namespace PdfResponse;
  *  - added support for JavaScript
  *  - shortcut for opening print dialog
  */
-class mPDFExtended extends mPDF {
+class mPDFExtended extends \mPDF {
 
 	// <editor-fold defaultstate="collapsed" desc="JavaScript support - use $mpf->IncludeJS($yourScript)">
 	var $javascript="";
