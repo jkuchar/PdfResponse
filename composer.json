@@ -1,0 +1,21 @@
+{
+	"name": "jkuchar/pdfresponse",
+	"description": "PdfResponse is wrapper of mPDF for Nette.",
+	"license": "LGPL",
+	"authors": [
+		{
+			"name": "Jan Kuchař",
+			"homepage": "http://www.jankuchar.cz"
+		}
+	],
+	"autoload": {
+		"psr-0": {
+			"PdfReponse": ""
+		}
+	},
+	"require": {
+		"php": ">= 5.3.0",
+		"nette/nette": ">= 2.0",
+		"mpdf/mpdf": ">= 5.0"
+	}
+}
