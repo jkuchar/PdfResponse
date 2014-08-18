@@ -275,7 +275,7 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 		};
 
 		// Nette template given
-		if ($source instanceof \Nette\Templating\ITemplate) {
+		if ($source instanceof \Nette\Templating\ITemplate || $source instanceof \Nette\Application\UI\ITemplate ) {
 			$source->pdfResponse = $this;
 			$source->mPDF = $this->getMPDF();
 			return $source->__toString();
