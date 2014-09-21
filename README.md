@@ -1,6 +1,8 @@
 PdfResponse
 ===========
 
+[![Code Climate](https://codeclimate.com/github/jkuchar/PdfResponse/badges/gpa.svg)](https://codeclimate.com/github/jkuchar/PdfResponse)
+
 Project that generates PDF from HTML template. Project can be integrated into Nette-based project as Nette\Application\IResponse.
 
 - Project example - https://github.com/jkuchar/PdfResponse-example
