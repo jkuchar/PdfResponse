@@ -69,7 +69,7 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	 *
 	 * @var string
 	 */
-	public $pageOrientaion = self::ORIENTATION_PORTRAIT;
+	public $pageOrientation = self::ORIENTATION_PORTRAIT;
 
 	
 	/**
@@ -428,7 +428,7 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 			$margins["bottom"], // float $margin_bottom
 			$margins["header"], // float $margin_header
 			$margins["footer"], // float $margin_footer
-			$this->pageOrientaion
+			$this->pageOrientation
 		);
 
 		return $mpdf;
