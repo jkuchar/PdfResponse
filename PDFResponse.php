@@ -18,7 +18,7 @@ use Nette\Utils\Strings;
 use Nette\Object;
 use Nette\Http\IRequest;
 use Nette\Http\IResponse;
-use Nette\Callback;
+use Nette\Utils\Callback;
 
 /**
  * @property-read mPDFExtended $mPDF
@@ -255,7 +255,7 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	 * @param  mixed  renderable variable
 	 */
 	public function __construct($source) {
-		$this->createMPDF = callback($this,"createMPDF");
+		$this->createMPDF = [$this, "createMPDF"];
 		$this->source = $source;
 	}
 
@@ -393,15 +393,15 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	 * @return mPDFExtended
 	 */
 	public function getMPDF() {
-		if(!$this->mPDF instanceof mPDF) {
-			if($this->createMPDF instanceof Callback && $this->createMPDF->isCallable()) {
-				$mpdf = $this->createMPDF->invoke($this);
+		if(!$this->mPDF instanceof \mPDF) {
+			if(Callback::check($this->createMPDF)) {
+				$mpdf = Callback::invoke($this->createMPDF);
 				if(!($mpdf instanceof \mPDF)) {
 					throw new \Nette\InvalidStateException("Callback function createMPDF must return mPDF object!");
 				}
 				$this->mPDF = $mpdf;
 			}else
-				throw new \Nette\InvalidStateException("Callback createMPDF is not callable or is not instance of Nette\Callback!");
+				throw new \Nette\InvalidStateException("Callback createMPDF is not callable!");
 		}
 		return $this->mPDF;
 	}
