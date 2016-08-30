@@ -255,7 +255,7 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	 * @param  mixed  renderable variable
 	 */
 	public function __construct($source) {
-		$this->createMPDF = callback($this,"createMPDF");
+                $this->createMPDF = function() { return $this->createMPDF(); };
 		$this->source = $source;
 	}
 
@@ -394,8 +394,8 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	 */
 	public function getMPDF() {
 		if(!$this->mPDF instanceof mPDF) {
-			if($this->createMPDF instanceof Callback && $this->createMPDF->isCallable()) {
-				$mpdf = $this->createMPDF->invoke($this);
+			if (is_callable($this->createMPDF)) {
+				$mpdf = $this->createMPDF();
 				if(!($mpdf instanceof \mPDF)) {
 					throw new \Nette\InvalidStateException("Callback function createMPDF must return mPDF object!");
 				}
