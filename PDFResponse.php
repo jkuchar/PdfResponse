@@ -255,7 +255,7 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	 * @param  mixed  renderable variable
 	 */
 	public function __construct($source) {
-		$this->createMPDF = [$this, "createMPDF"];
+		$this->createMPDF = array($this, "createMPDF");
 		$this->source = $source;
 	}
 
