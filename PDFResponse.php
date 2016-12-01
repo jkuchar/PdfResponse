@@ -164,6 +164,12 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	public $onBeforeComplete = array();
 
 	/**
+	 * Before document write starts
+	 * @var callback
+	 */
+	public $onBeforeWrite = array();
+
+	/**
 	 * Multi-language document?
 	 * @var bool
 	 */
@@ -363,6 +369,7 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 			$html = $parsedHtml->__toString();
 		}
 
+		$this->onBeforeWrite($mpdf);
 
 		// Add content
 		$mpdf->WriteHTML(
