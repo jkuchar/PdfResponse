@@ -14,6 +14,7 @@
 
 namespace PdfResponse;
 
+use Mpdf\Mpdf;
 use Nette\Utils\Strings;
 use Nette\Object;
 use Nette\Http\IRequest;
@@ -258,7 +259,8 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	}
 
 	/**
-	 * @param  mixed  renderable variable
+	 * PdfResponse constructor.
+	 * @param $source
 	 */
 	public function __construct($source) {
 		$this->createMPDF = array($this, "createMPDF");
@@ -400,10 +402,10 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	 * @return mPDFExtended
 	 */
 	public function getMPDF() {
-		if(!$this->mPDF instanceof \mPDF) {
+		if(!$this->mPDF instanceof Mpdf) {
 			if(Callback::check($this->createMPDF)) {
 				$mpdf = Callback::invoke($this->createMPDF);
-				if(!($mpdf instanceof \mPDF)) {
+				if(!($mpdf instanceof Mpdf)) {
 					throw new \Nette\InvalidStateException("Callback function createMPDF must return mPDF object!");
 				}
 				$this->mPDF = $mpdf;
@@ -414,31 +416,27 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	}
 
 
-
 	/**
 	 * Creates and returns mPDF object
-	 * @param PDFResponse $response
 	 * @return mPDFExtended
 	 */
 	public function createMPDF() {
 		$margins = $this->getMargins();
 
-		//  [ float $margin_header , float $margin_footer [, string $orientation ]]]]]])
-		$mpdf = new mPDFExtended(
-			'utf-8',            // string $codepage
-			$this->pageFormat,  // mixed $format
-			'',                 // float $default_font_size
-			'',                 // string $default_font
-			$margins["left"],   // float $margin_left
-			$margins["right"],  // float $margin_right
-			$margins["top"],    // float $margin_top
-			$margins["bottom"], // float $margin_bottom
-			$margins["header"], // float $margin_header
-			$margins["footer"], // float $margin_footer
-			$this->pageOrientation
-		);
+		$mpdf = new mPDFExtended([
+			'mode' => 'utf-8',
+			'format' => $this->pageFormat,
+			'default_font_size' => '',
+			'default_font' => '',
+			'margin_left' => $margins["left"],
+			'margin_right' => $margins["right"],
+			'margin_top' => $margins["top"],
+			'margin_bottom' => $margins["bottom"],
+			'margin_header' => $margins["header"],
+			'margin_footer' => $margins["footer"],
+			'orientation' => $this->pageOrientation,
+		]);
 
 		return $mpdf;
 	}
-
 }
