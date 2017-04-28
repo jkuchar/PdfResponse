@@ -9,7 +9,10 @@
 		}
 	],
 	"autoload": {
-		"classmap": ["./"]
+		"classmap": [
+			"mPDFExtended.php",
+			"PDFResponse.php"
+		]
 	},
 	"require": {
 		"php": ">= 5.3.0",
