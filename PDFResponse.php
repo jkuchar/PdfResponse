@@ -159,6 +159,14 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	public $displayLayout = "continuous";
 
 	/**
+	 * This parameter specifie the directory to be used as a temp dir when generating PDF content.<br/>
+	 * If it is empty, mPDF default value is used.
+	 *
+	 * @var string
+	 */
+	public $tempDir = "";
+
+	/**
 	 * Before document output starts
 	 * @var callback
 	 */
@@ -422,8 +430,7 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 	 */
 	public function createMPDF() {
 		$margins = $this->getMargins();
-
-		$mpdf = new mPDFExtended([
+		$config = [
 			'mode' => 'utf-8',
 			'format' => $this->pageFormat,
 			'default_font_size' => '',
@@ -435,8 +442,12 @@ class PdfResponse extends Object implements \Nette\Application\IResponse {
 			'margin_header' => $margins["header"],
 			'margin_footer' => $margins["footer"],
 			'orientation' => $this->pageOrientation,
-		]);
+		];
+		if (!empty($this->tempDir)) {
+			$config['tempDir'] = $this->tempDir;
+		}
 
+		$mpdf = new mPDFExtended($config);
 		return $mpdf;
 	}
 }
