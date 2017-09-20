@@ -15,8 +15,8 @@
 namespace PdfResponse;
 
 use Mpdf\Mpdf;
+use Nette\SmartObject;
 use Nette\Utils\Strings;
-use Nette\Object;
 use Nette\Http\IRequest;
 use Nette\Http\IResponse;
 use Nette\Utils\Callback;
@@ -24,8 +24,10 @@ use Nette\Utils\Callback;
 /**
  * @property-read mPDFExtended $mPDF
  */
-class PdfResponse extends Object implements \Nette\Application\IResponse {
-	
+class PdfResponse implements \Nette\Application\IResponse {
+
+	use SmartObject;
+
 	/**
 	 * Source data
 	 * @var mixed
