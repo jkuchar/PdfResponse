@@ -19,6 +19,6 @@
 		"nette/utils": ">= 2.4",
 		"nette/http": ">= 2.4",
 		"nette/application": ">= 2.4",
-		"mpdf/mpdf": "^7.0-beta2"
+		"mpdf/mpdf": "^7.0.0"
 	}
 }
