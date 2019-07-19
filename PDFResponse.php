@@ -318,9 +318,8 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 	/**
 	 * Sends response to output.
-	 * @return void
 	 */
-	public function send(IRequest $httpRequest, IResponse $httpResponse) {
+	public function send(IRequest $httpRequest, IResponse $httpResponse): void {
 		// Throws exception if sources can not be processed
 		$html = $this->getSource();
 		
