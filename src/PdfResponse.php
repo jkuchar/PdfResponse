@@ -19,6 +19,7 @@ use Nette\Http\IRequest;
 use Nette\Http\IResponse;
 use Nette\SmartObject;
 use Nette\Utils\Strings;
+use PHPHtmlParser\Dom;
 
 /**
  * @property-read mPDFExtended $mPDF
@@ -169,15 +170,15 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 	/**
 	 * Before document output starts
-	 * @var callback
+	 * @var callable|null
 	 */
-	public $onBeforeComplete = array();
+	public $onBeforeComplete = null;
 
 	/**
 	 * Before document write starts
-	 * @var callback
+	 * @var callable|null
 	 */
-	public $onBeforeWrite = array();
+	public $onBeforeWrite = null;
 
 	/**
 	 * Multi-language document?
@@ -292,10 +293,10 @@ class PdfResponse implements \Nette\Application\IResponse {
 		};
 
 		// Nette template given
-		if ($source instanceof \Nette\Templating\ITemplate || $source instanceof \Nette\Application\UI\ITemplate ) {
+		if ($source instanceof \Nette\Application\UI\ITemplate ) {
 			$source->pdfResponse = $this;
 			$source->mPDF = $this->getMPDF();
-			return $source->__toString();
+			return (string) $source;
 
 		};
 
@@ -342,7 +343,9 @@ class PdfResponse implements \Nette\Application\IResponse {
 			$html = preg_replace('/<\!\-\-.*?\-\->/s','',$html);
 
 			// deletes all <style> tags
-			$parsedHtml = new simple_html_dom($html);
+
+			$parsedHtml = new Dom();
+			$parsedHtml->loadStr($html);
 			foreach($parsedHtml->find('style') AS $el) {
 				$el->outertext = '';
 			}
@@ -356,7 +359,8 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 		if(class_exists('\\simple_html_dom',true)) {
 			// Support for base64 encoded images - workaround
-			$parsedHtml = new \simple_html_dom($html);
+			$parsedHtml = new Dom();
+			$parsedHtml->loadStr($html);
 			$i = 1000;
 			foreach($parsedHtml->find('img') AS $element) {
 				$boundary1 = 'data:';
@@ -379,7 +383,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 			$html = $parsedHtml->__toString();
 		}
 
-		$this->onBeforeWrite($mpdf);
+		Utils::tryCall($this->onBeforeWrite);
 
 		// Add content
 		$mpdf->WriteHTML(
@@ -395,7 +399,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 			);
 		}
 
-		$this->onBeforeComplete($mpdf);
+		Utils::tryCall($this->onBeforeComplete);
 
 		if(!$this->outputName) {
 			$this->outputName = Strings::webalize($this->documentTitle). '.pdf';
