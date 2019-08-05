@@ -44,12 +44,12 @@ class PdfResponse implements \Nette\Application\IResponse {
 	/**
 	 * Portrait page orientation
 	 */
-	const ORIENTATION_PORTRAIT  = "P";
+	const ORIENTATION_PORTRAIT  = 'P';
 
 	/**
 	 * Landscape page orientation
 	 */
-	const ORIENTATION_LANDSCAPE = "L";
+	const ORIENTATION_LANDSCAPE = 'L';
 
 	/**
 	 * Specifies page orientation.
@@ -98,7 +98,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 *
 	 * @var string
 	 */
-	public $pageFormat = "A4";
+	public $pageFormat = 'A4';
 
 	/**
 	 * Margins in this order:
@@ -116,19 +116,19 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 *
 	 * @var string
 	 */
-	public $pageMargins = "16,15,16,15,9,9";
+	public $pageMargins = '16,15,16,15,9,9';
 
 	/**
 	 * Author of the document
 	 * @var string
 	 */
-	public $documentAuthor = "Nette Framework - Pdf response";
+	public $documentAuthor = 'Nette Framework - Pdf response';
 
 	/**
 	 * Title of the document
 	 * @var string
 	 */
-	public $documentTitle = "Unnamed document";
+	public $documentTitle = 'Unnamed document';
 
 	/**
 	 * This parameter specifies the magnification (zoom) of the display when the document is opened.<br>
@@ -143,7 +143,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 *
 	 * @var string|int
 	 */
-	public $displayZoom = "default";
+	public $displayZoom = 'default';
 
 	/**
 	 * Specify the page layout to be used when the document is opened.<br>
@@ -157,7 +157,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 *
 	 * @var string
 	 */
-	public $displayLayout = "continuous";
+	public $displayLayout = 'continuous';
 
 	/**
 	 * This parameter specifie the directory to be used as a temp dir when generating PDF content.<br/>
@@ -189,7 +189,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 * Additional stylesheet as a <b>string</b>
 	 * @var string
 	 */
-	public $styles = "";
+	public $styles = '';
 
 	/**
 	 * <b>Ignore</b> styles in HTML document
@@ -213,22 +213,22 @@ class PdfResponse implements \Nette\Application\IResponse {
 	/**
 	 * send the file inline to the browser. The plug-in is used if available. The name given by filename is used when one selects the "Save as" option on the link generating the PDF.
 	 */
-	const OUTPUT_INLINE = "I";
+	const OUTPUT_INLINE = 'I';
 
 	/**
 	 * send to the browser and force a file download with the name given by filename.
 	 */
-	const OUTPUT_DOWNLOAD = "D";
+	const OUTPUT_DOWNLOAD = 'D';
 
 	/**
 	 * save to a local file with the name given by filename (may include a path).
 	 */
-	const OUTPUT_FILE = "F";
+	const OUTPUT_FILE = 'F';
 
 	/**
 	 * return the document as a string. filename is ignored.
 	 */
-	const OUTPUT_STRING = "S";
+	const OUTPUT_STRING = 'S';
 
 	/**
 	 * Output destination
@@ -241,25 +241,25 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 * @return array
 	 */
 	function getMargins() {
-		$margins = explode(",", $this->pageMargins);
+		$margins = explode(',', $this->pageMargins);
 		if(count($margins) !== 6) {
-			throw new \Nette\InvalidStateException("You must specify all margins! For example: 16,15,16,15,9,9");
+			throw new \Nette\InvalidStateException('You must specify all margins! For example: 16,15,16,15,9,9');
 		}
 
 		$dictionary = array(
-			0 => "top",
-			1 => "right",
-			2 => "bottom",
-			3 => "left",
-			4 => "header",
-			5 => "footer"
+			0 => 'top',
+			1 => 'right',
+			2 => 'bottom',
+			3 => 'left',
+			4 => 'header',
+			5 => 'footer'
 		);
 
 		$marginsOut = array();
 		foreach($margins AS $key => $val) {
 			$val = (int)$val;
 			if($val < 0) {
-				throw new \Nette\InvalidArgumentException("Margin must not be negative number!");
+				throw new \Nette\InvalidArgumentException('Margin must not be negative number!');
 			}
 			$marginsOut[$dictionary[$key]] = $val;
 		}
@@ -272,7 +272,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 * @param $source
 	 */
 	public function __construct($source) {
-		$this->createMPDF = array($this, "createMPDF");
+		$this->createMPDF = array($this, 'createMPDF');
 		$this->source = $source;
 	}
 
@@ -300,14 +300,14 @@ class PdfResponse implements \Nette\Application\IResponse {
 		};
 
 		// Other case - not supported
-		throw new \Nette\InvalidStateException("Source is not supported! (type: ".
-			(is_object($source) ? ("object of class " . get_class($source)) : gettype($source)).
-		")");
+		throw new \Nette\InvalidStateException('Source is not supported! (type: ' .
+			(is_object($source) ? ('object of class ' . get_class($source)) : gettype($source)).
+			')');
 	}
 
 	public function getRawSource() {
 		if(!$this->source) {
-			throw new \Nette\InvalidStateException("Source is not defined!");
+			throw new \Nette\InvalidStateException('Source is not defined!');
 		}
 
 		return $this->source;
@@ -324,7 +324,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 		// Fix: $html can't be empty (mPDF generates Fatal error)
 		if(empty($html)) {
-			$html = "<html><body></body></html>";
+			$html = '<html><body></body></html>';
 		}
 
 		$mpdf = $this->getMPDF();
@@ -343,8 +343,8 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 			// deletes all <style> tags
 			$parsedHtml = new simple_html_dom($html);
-			foreach($parsedHtml->find("style") AS $el) {
-				$el->outertext = "";
+			foreach($parsedHtml->find('style') AS $el) {
+				$el->outertext = '';
 			}
 			$html = $parsedHtml->__toString();
 
@@ -358,22 +358,22 @@ class PdfResponse implements \Nette\Application\IResponse {
 			// Support for base64 encoded images - workaround
 			$parsedHtml = new \simple_html_dom($html);
 			$i = 1000;
-			foreach($parsedHtml->find("img") AS $element) {
-				$boundary1 = "data:";
+			foreach($parsedHtml->find('img') AS $element) {
+				$boundary1 = 'data:';
 				$pos1 = strlen($boundary1);
 				if(!substr($element->src,0,$pos1) == $boundary1) continue;
-				$pos2 = strpos($element->src,";",$pos1);
+				$pos2 = strpos($element->src, ';',$pos1);
 				if($pos2 === false) continue;
 				$mime = substr($element->src, $pos1, $pos2-$pos1);
-				$boundary = "base64,";
+				$boundary = 'base64,';
 				$base64 = substr($element->src, $pos2+strlen($boundary)+1);
 
 				$data = base64_decode($base64);
 				if($data === false) continue;
 
-				$propertyName = "base64Image".$i;
+				$propertyName = 'base64Image' .$i;
 				$mpdf->$propertyName = $data;
-				$element->src = "var:".$propertyName;
+				$element->src = 'var:' .$propertyName;
 				$i++;
 			}
 			$html = $parsedHtml->__toString();
@@ -398,7 +398,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 		$this->onBeforeComplete($mpdf);
 
 		if(!$this->outputName) {
-			$this->outputName = Strings::webalize($this->documentTitle).".pdf";
+			$this->outputName = Strings::webalize($this->documentTitle). '.pdf';
 		}
 
 		$mpdf->Output($this->outputName,$this->outputDestination);
@@ -415,11 +415,11 @@ class PdfResponse implements \Nette\Application\IResponse {
 				$factory = $this->createMPDF;
 				$mpdf = $factory();
 				if(!$mpdf instanceof Mpdf) {
-					throw new \Nette\InvalidStateException("Callback function createMPDF must return mPDF object!");
+					throw new \Nette\InvalidStateException('Callback function createMPDF must return mPDF object!');
 				}
 				$this->mPDF = $mpdf;
 			}else
-				throw new \Nette\InvalidStateException("Callback createMPDF is not callable!");
+				throw new \Nette\InvalidStateException('Callback createMPDF is not callable!');
 		}
 		return $this->mPDF;
 	}
@@ -436,12 +436,12 @@ class PdfResponse implements \Nette\Application\IResponse {
 			'format' => $this->pageFormat,
 			'default_font_size' => '',
 			'default_font' => '',
-			'margin_left' => $margins["left"],
-			'margin_right' => $margins["right"],
-			'margin_top' => $margins["top"],
-			'margin_bottom' => $margins["bottom"],
-			'margin_header' => $margins["header"],
-			'margin_footer' => $margins["footer"],
+			'margin_left' => $margins['left'],
+			'margin_right' => $margins['right'],
+			'margin_top' => $margins['top'],
+			'margin_bottom' => $margins['bottom'],
+			'margin_header' => $margins['header'],
+			'margin_footer' => $margins['footer'],
 			'orientation' => $this->pageOrientation,
 		];
 		if ($this->tempDir !== null) {

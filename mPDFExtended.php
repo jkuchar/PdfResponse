@@ -24,7 +24,7 @@ use Mpdf\Mpdf;
 class mPDFExtended extends Mpdf {
 
 	// <editor-fold defaultstate="collapsed" desc="JavaScript support - use $mpf->IncludeJS($yourScript)">
-	var $javascript="";
+	var $javascript= '';
 	var $n_js;
 
 	function IncludeJS($script) {
@@ -62,7 +62,7 @@ class mPDFExtended extends Mpdf {
 	// </editor-fold>
 
 	function OpenPrintDialog() {
-		$this->IncludeJS("print();");
+		$this->IncludeJS('print();');
 	}
 
 }
