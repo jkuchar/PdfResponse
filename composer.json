@@ -4,9 +4,11 @@
 	"license": "LGPL",
 	"scripts": {
 		"verify": [
+			"@phpstan",
 			"@tester"
 		],
-		"tester": "vendor/bin/tester test"
+		"tester": "vendor/bin/tester test",
+		"phpstan": "vendor/bin/phpstan analyze src -c phpstan.neon --memory-limit 1G -l 0 --error-format compact"
 	},
 	"authors": [
 		{
@@ -15,10 +17,9 @@
 		}
 	],
 	"autoload": {
-		"classmap": [
-			"mPDFExtended.php",
-			"PDFResponse.php"
-		]
+		"psr-4": {
+			"PdfResponse\\": "src"
+		}
 	},
 	"require": {
 		"php": ">= 7.1.0",
@@ -28,6 +29,8 @@
 		"mpdf/mpdf": "^7.0.0"
 	},
 	"require-dev": {
-		"nette/tester": "^2.2"
+		"nette/tester": "^2.2",
+		"phpstan/phpstan": "^0.11.12",
+		"grifart/phpstan-oneline": "^0.2.2"
 	}
 }
