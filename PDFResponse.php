@@ -15,11 +15,10 @@
 namespace PdfResponse;
 
 use Mpdf\Mpdf;
-use Nette\SmartObject;
-use Nette\Utils\Strings;
 use Nette\Http\IRequest;
 use Nette\Http\IResponse;
-use Nette\Utils\Callback;
+use Nette\SmartObject;
+use Nette\Utils\Strings;
 
 /**
  * @property-read mPDFExtended $mPDF
@@ -34,19 +33,19 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 */
 	private $source;
 
-	
+
 	/**
 	 * Callback - create mPDF object
-	 * @var Callback
+	 * @var callable
 	 */
 	public $createMPDF = null;
 
-	
+
 	/**
 	 * Portrait page orientation
 	 */
 	const ORIENTATION_PORTRAIT  = "P";
-	
+
 	/**
 	 * Landscape page orientation
 	 */
@@ -74,7 +73,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 */
 	public $pageOrientation = self::ORIENTATION_PORTRAIT;
 
-	
+
 	/**
 	 * Specifies format of the document<br>
 	 * <br>
@@ -141,7 +140,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 *   <li><b>default</b>: User's default setting in Adobe Reader
 	 *   <li><i>integer</i>: Display at a percentage zoom (e.g. 90 will display at 90% zoom)
 	 * </ul>
-	 * 
+	 *
 	 * @var string|int
 	 */
 	public $displayZoom = "default";
@@ -149,13 +148,13 @@ class PdfResponse implements \Nette\Application\IResponse {
 	/**
 	 * Specify the page layout to be used when the document is opened.<br>
 	 * Values (case-<b>sensitive</b>)
-	 * <ul>   
+	 * <ul>
 	 *   <li><b>single</b>: Display one page at a time
 	 *   <li><b>continuous</b>: Display the pages in one column
 	 *   <li><b>two</b>: Display the pages in two columns
 	 *   <li><b>default</b>: User's default setting in Adobe Reader
 	 * </ul>
-	 * 
+	 *
 	 * @var string
 	 */
 	public $displayLayout = "continuous";
@@ -310,7 +309,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 		if(!$this->source) {
 			throw new \Nette\InvalidStateException("Source is not defined!");
 		}
-		
+
 		return $this->source;
 	}
 
@@ -322,7 +321,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 	public function send(IRequest $httpRequest, IResponse $httpResponse): void {
 		// Throws exception if sources can not be processed
 		$html = $this->getSource();
-		
+
 		// Fix: $html can't be empty (mPDF generates Fatal error)
 		if(empty($html)) {
 			$html = "<html><body></body></html>";
@@ -368,10 +367,10 @@ class PdfResponse implements \Nette\Application\IResponse {
 				$mime = substr($element->src, $pos1, $pos2-$pos1);
 				$boundary = "base64,";
 				$base64 = substr($element->src, $pos2+strlen($boundary)+1);
-				
+
 				$data = base64_decode($base64);
 				if($data === false) continue;
-				
+
 				$propertyName = "base64Image".$i;
 				$mpdf->$propertyName = $data;
 				$element->src = "var:".$propertyName;
@@ -412,9 +411,10 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 */
 	public function getMPDF() {
 		if(!$this->mPDF instanceof Mpdf) {
-			if(Callback::check($this->createMPDF)) {
-				$mpdf = Callback::invoke($this->createMPDF);
-				if(!($mpdf instanceof Mpdf)) {
+			if(\is_callable($this->createMPDF)) {
+				$factory = $this->createMPDF;
+				$mpdf = $factory();
+				if(!$mpdf instanceof Mpdf) {
 					throw new \Nette\InvalidStateException("Callback function createMPDF must return mPDF object!");
 				}
 				$this->mPDF = $mpdf;
