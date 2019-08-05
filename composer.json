@@ -2,6 +2,12 @@
 	"name": "jkuchar/pdfresponse",
 	"description": "PdfResponse is wrapper of mPDF for Nette.",
 	"license": "LGPL",
+	"scripts": {
+		"verify": [
+			"@tester"
+		],
+		"tester": "vendor/bin/tester test"
+	},
 	"authors": [
 		{
 			"name": "Jan Kuchař",
@@ -20,5 +26,8 @@
 		"nette/http": "^3.0",
 		"nette/application": "^3.0",
 		"mpdf/mpdf": "^7.0.0"
+	},
+	"require-dev": {
+		"nette/tester": "^2.2"
 	}
 }
