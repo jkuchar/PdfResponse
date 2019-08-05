@@ -4,7 +4,7 @@ require __DIR__ . '/bootstrap.php';
 
 $html = file_get_contents(__DIR__ . '/PdfResponse.simple.html');
 $response = new \PdfResponse\PdfResponse($html);
-$response->mPDF->OpenPrintDialog();
+$response->openPrintDialog();
 
 ob_start();
 $response->send(

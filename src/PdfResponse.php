@@ -22,7 +22,7 @@ use Nette\Utils\Strings;
 use PHPHtmlParser\Dom;
 
 /**
- * @property-read mPDFExtended $mPDF
+ * @property-read Mpdf $mPDF
  */
 class PdfResponse implements \Nette\Application\IResponse {
 
@@ -200,8 +200,8 @@ class PdfResponse implements \Nette\Application\IResponse {
 	public $ignoreStylesInHTMLDocument = false;
 
 	/**
-	 * mPDFExtended instance
-	 * @var mPDFExtended
+	 * mPDF instance
+	 * @var Mpdf
 	 */
 	private $mPDF = null;
 
@@ -278,6 +278,9 @@ class PdfResponse implements \Nette\Application\IResponse {
 	}
 
 
+	function openPrintDialog() {
+		$this->getMPDF()->SetJS('print()');
+	}
 
 	/**
 	 * Getts source document html
@@ -332,7 +335,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 		$mpdf->biDirectional = $this->multiLanguage;
 		$mpdf->SetAuthor($this->documentAuthor);
 		$mpdf->SetTitle($this->documentTitle);
-		$mpdf->SetDisplayMode($this->displayZoom,$this->displayLayout);
+		$mpdf->SetDisplayMode($this->displayZoom, $this->displayLayout);
 
 		// @see: http://mpdf1.com/manual/index.php?tid=121&searchstring=writeHTML
 		if($this->ignoreStylesInHTMLDocument) {
@@ -357,31 +360,29 @@ class PdfResponse implements \Nette\Application\IResponse {
 		}
 
 
-		if(class_exists('\\simple_html_dom',true)) {
-			// Support for base64 encoded images - workaround
-			$parsedHtml = new Dom();
-			$parsedHtml->loadStr($html);
-			$i = 1000;
-			foreach($parsedHtml->find('img') AS $element) {
-				$boundary1 = 'data:';
-				$pos1 = strlen($boundary1);
-				if(!substr($element->src,0,$pos1) == $boundary1) continue;
-				$pos2 = strpos($element->src, ';',$pos1);
-				if($pos2 === false) continue;
-				$mime = substr($element->src, $pos1, $pos2-$pos1);
-				$boundary = 'base64,';
-				$base64 = substr($element->src, $pos2+strlen($boundary)+1);
+		// Support for base64 encoded images - workaround
+		$parsedHtml = new Dom();
+		$parsedHtml->loadStr($html);
+		$i = 1000;
+		foreach($parsedHtml->find('img') AS $element) {
+			$boundary1 = 'data:';
+			$pos1 = strlen($boundary1);
+			if(!substr($element->src,0,$pos1) == $boundary1) continue;
+			$pos2 = strpos($element->src, ';',$pos1);
+			if($pos2 === false) continue;
+			$mime = substr($element->src, $pos1, $pos2-$pos1);
+			$boundary = 'base64,';
+			$base64 = substr($element->src, $pos2+strlen($boundary)+1);
 
-				$data = base64_decode($base64);
-				if($data === false) continue;
+			$data = base64_decode($base64);
+			if($data === false) continue;
 
-				$propertyName = 'base64Image' .$i;
-				$mpdf->$propertyName = $data;
-				$element->src = 'var:' .$propertyName;
-				$i++;
-			}
-			$html = $parsedHtml->__toString();
+			$propertyName = 'base64Image' .$i;
+			$mpdf->$propertyName = $data;
+			$element->src = 'var:' .$propertyName;
+			$i++;
 		}
+		$html = $parsedHtml->__toString();
 
 		Utils::tryCall($this->onBeforeWrite);
 
@@ -411,7 +412,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 	/**
 	 * Returns mPDF object
-	 * @return mPDFExtended
+	 * @return Mpdf
 	 */
 	public function getMPDF() {
 		if(!$this->mPDF instanceof Mpdf) {
@@ -431,7 +432,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 	/**
 	 * Creates and returns mPDF object
-	 * @return mPDFExtended
+	 * @return Mpdf
 	 */
 	public function createMPDF() {
 		$margins = $this->getMargins();
@@ -452,6 +453,6 @@ class PdfResponse implements \Nette\Application\IResponse {
 			$config['tempDir'] = $this->tempDir;
 		}
 
-		return new mPDFExtended($config);
+		return new Mpdf($config);
 	}
 }
