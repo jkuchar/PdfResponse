@@ -8,7 +8,7 @@
 			"@tester"
 		],
 		"tester": "vendor/bin/tester test",
-		"phpstan": "vendor/bin/phpstan analyze src -c phpstan.neon --memory-limit 1G -l 0 --error-format compact"
+		"phpstan": "vendor/bin/phpstan analyze src -c phpstan.neon --memory-limit 1G -l 1 --error-format compact"
 	},
 	"authors": [
 		{
