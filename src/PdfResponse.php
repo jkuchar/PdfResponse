@@ -362,6 +362,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 		// Support for base64 encoded images - workaround
 		$parsedHtml = new Dom();
+		$parsedHtml->setOptions(['removeStyles' => false]);
 		$parsedHtml->loadStr($html);
 		$i = 1000;
 		foreach($parsedHtml->find('img') AS $element) {
