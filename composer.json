@@ -1,7 +1,7 @@
 {
 	"name": "jkuchar/pdfresponse",
 	"description": "PdfResponse is wrapper of mPDF for Nette.",
-	"license": "LGPL",
+	"license": "LGPL-2.0-or-later",
 	"scripts": {
 		"verify": [
 			"@phpstan",
