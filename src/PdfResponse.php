@@ -34,6 +34,9 @@ class PdfResponse implements \Nette\Application\IResponse {
 	 */
 	private $source;
 
+	/** @var array */
+	public $domOptions = [];
+
 
 	/**
 	 * Callback - create mPDF object
@@ -347,7 +350,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 			// deletes all <style> tags
 
-			$parsedHtml = new Dom();
+			$parsedHtml =  $this->createDom();
 			$parsedHtml->loadStr($html);
 			foreach($parsedHtml->find('style') AS $el) {
 				$el->outertext = '';
@@ -359,10 +362,8 @@ class PdfResponse implements \Nette\Application\IResponse {
 			$mode = 0; // Parse all: HTML + CSS
 		}
 
-
 		// Support for base64 encoded images - workaround
-		$parsedHtml = new Dom();
-		$parsedHtml->setOptions(['removeStyles' => false]);
+		$parsedHtml = $this->createDom();
 		$parsedHtml->loadStr($html);
 		$i = 1000;
 		foreach($parsedHtml->find('img') AS $element) {
@@ -456,4 +457,25 @@ class PdfResponse implements \Nette\Application\IResponse {
 
 		return new Mpdf($config);
 	}
+
+
+  /**
+   * Creates and returns Dom object
+   * @return Dom
+   */
+	private function createDom() {
+    $options = $this->domOptions;
+
+	  if (empty($options))
+    {
+      $options = [
+        'removeStyles' => FALSE
+      ];
+    }
+
+    $dom = new Dom();
+    $dom->setOptions($options);
+
+    return $dom;
+  }
 }
