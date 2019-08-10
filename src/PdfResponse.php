@@ -459,23 +459,23 @@ class PdfResponse implements \Nette\Application\IResponse {
 	}
 
 
-  /**
-   * Creates and returns Dom object
-   * @return Dom
-   */
+	/**
+	 * Creates and returns Dom object
+	 * @return Dom
+	 */
 	private function createDom() {
-    $options = $this->domOptions;
+		$options = $this->domOptions;
 
-	  if (empty($options))
-    {
-      $options = [
-        'removeStyles' => FALSE
-      ];
-    }
+		if (empty($options))
+		{
+			$options = [
+				'removeStyles' => FALSE
+			];
+		}
 
-    $dom = new Dom();
-    $dom->setOptions($options);
+		$dom = new Dom();
+		$dom->setOptions($options);
 
-    return $dom;
-  }
+		return $dom;
+	}
 }
