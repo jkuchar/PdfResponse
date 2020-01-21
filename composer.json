@@ -27,7 +27,7 @@
 		"nette/http": "~2.4.0|~3.0.0",
 		"nette/application": "~2.4.0|~3.0.0",
 		"mpdf/mpdf": "^7.0|^8.0",
-		"paquettg/php-html-parser": "^2.0"
+		"paquettg/php-html-parser": "^2.1.0"
 	},
 	"require-dev": {
 		"nette/tester": "^2.3.1",
