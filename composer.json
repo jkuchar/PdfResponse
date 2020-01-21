@@ -23,10 +23,10 @@
 	},
 	"require": {
 		"php": ">= 7.1.0",
-		"nette/utils": "^3.0",
-		"nette/http": "^3.0",
-		"nette/application": "^3.0",
-		"mpdf/mpdf": "^7.0.0",
+		"nette/utils": ">= 2.4",
+		"nette/http": ">= 2.4",
+		"nette/application": ">= 2.4",
+		"mpdf/mpdf": ">=7.0.0",
 		"paquettg/php-html-parser": "^2.0"
 	},
 	"require-dev": {
