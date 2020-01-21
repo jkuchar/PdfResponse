@@ -11,6 +11,6 @@ env:
  - COMPOSER_OPTIONS=--prefer-lowest
 
 before_script:
-  - composer install ${COMPOSER_OPTIONS}
+  - composer update ${COMPOSER_OPTIONS}
 
 script: composer run verify
