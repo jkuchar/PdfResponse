@@ -6,8 +6,11 @@ php:
   - '7.3'
   - '7.4'
 
+env:
+ - COMPOSER_OPTIONS=
+ - COMPOSER_OPTIONS=--prefer-lowest
+
 before_script:
-  - composer install
-  - composer install --prefer-lowest
+  - composer install ${COMPOSER_OPTIONS}
 
 script: composer run verify
