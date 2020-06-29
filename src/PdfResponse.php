@@ -380,7 +380,7 @@ class PdfResponse implements \Nette\Application\IResponse {
 			if($data === false) continue;
 
 			$propertyName = 'base64Image' .$i;
-			$mpdf->$propertyName = $data;
+			$mpdf->imageVars[$propertyName] = $data;
 			$element->src = 'var:' .$propertyName;
 			$i++;
 		}
