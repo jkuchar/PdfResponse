@@ -362,30 +362,6 @@ class PdfResponse implements \Nette\Application\IResponse {
 			$mode = 0; // Parse all: HTML + CSS
 		}
 
-		// Support for base64 encoded images - workaround
-		$parsedHtml = $this->createDom();
-		$parsedHtml->loadStr($html);
-		$i = 1000;
-		foreach($parsedHtml->find('img') AS $element) {
-			$boundary1 = 'data:';
-			$pos1 = strlen($boundary1);
-			if(!substr($element->src,0,$pos1) == $boundary1) continue;
-			$pos2 = strpos($element->src, ';',$pos1);
-			if($pos2 === false) continue;
-			$mime = substr($element->src, $pos1, $pos2-$pos1);
-			$boundary = 'base64,';
-			$base64 = substr($element->src, $pos2+strlen($boundary)+1);
-
-			$data = base64_decode($base64);
-			if($data === false) continue;
-
-			$propertyName = 'base64Image' .$i;
-			$mpdf->$propertyName = $data;
-			$element->src = 'var:' .$propertyName;
-			$i++;
-		}
-		$html = $parsedHtml->__toString();
-
 		Utils::tryCall($this->onBeforeWrite);
 
 		// Add content
